@@ -27,6 +27,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
     state->windowWidth = 800;
     state->windowHeight = 600;
     state->mouseButton = 0;
+    state->selectedItemUiIndex = 6;
     if (!SDL_CreateWindowAndRenderer("PixeledSparrow",state->windowWidth,state->windowHeight,SDL_WINDOW_RESIZABLE,&state->window,&state->renderer))
     {
         SDL_Log("Could not create window and renderer: %s",SDL_GetError());
@@ -71,6 +72,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     }
     UpdateCameraPosition(state->entities[state->playerIndex],state->camera);
     Render(*state);
+    UpdateSelectedItem(*state);
     return SDL_APP_CONTINUE;
 }
 
@@ -111,6 +113,8 @@ void Render(AppState& appState)
     //SDL_SetRenderDrawColor(appState.renderer,0,255,0,255);
     DrawMapGrid(appState);
     DrawMap(appState);
+    RenderInventory(appState);
+    RenderSelectedButton(appState);
     float drawX = 0.0f;
     float drawY = 0.0f;
     for (int i = 0; i < MAX_ENTITIES; i++)
