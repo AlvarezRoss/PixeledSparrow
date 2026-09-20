@@ -19,6 +19,8 @@
 #define TILED_OFFSET 1
 #define MAP_PIXEL_COUNT 1600
 #define SPRITE_SIZE 16
+#define INVENTORY_TOP_TO_BUTTONS 35
+#define INVENTORY_OFFSET 11
 
 enum ENTITY_TYPE
 {
@@ -86,9 +88,8 @@ struct Graphics
     SDL_Texture *playerTexture;
     SDL_Texture *chickenTexture;
     SDL_Texture *cowTexture;
-    SDL_Texture *bushTiles;
-    SDL_Texture *darkGrassTiles;
-    SDL_Texture *darkHillTiles;
+    SDL_Texture *inventoryUi;
+    SDL_Texture *selectedUi;
 };
 struct Animation
 {
@@ -155,9 +156,12 @@ struct AppState
     int playerIndex;
     int windowHeight;
     int windowWidth;
+    int selectedItemUiIndex;
     Uint8 mouseButton;
     float mouseX;
     float mouseY;
+    float uiX;
+    float uiY;
 };
 
 void HandleAppEvent(AppState& gameState);
@@ -172,3 +176,6 @@ void UpdateEntityPosition(Entity& entity);
 void UpdateEntityState(Entity& entity);
 void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
+void RenderInventory(AppState& appState);
+void RenderSelectedButton(AppState& appState);
+void UpdateSelectedItem(AppState& appState);

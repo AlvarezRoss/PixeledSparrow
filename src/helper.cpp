@@ -34,11 +34,10 @@ int InitGraphics(AppState& appState)
     if (appState.graphics->cowTexture == nullptr) return -1;
     appState.graphics->chickenTexture = IMG_LoadTexture(appState.renderer,"assets/Animals/Chicken/chicken default.png");
     if (appState.graphics->chickenTexture == nullptr) return -1;
-    appState.graphics->bushTiles = IMG_LoadTexture(appState.renderer,"assets/Tilesets/ground tiles/New tiles/Bush_Tiles.png");
-    if (appState.graphics->bushTiles == nullptr) return -1;
-    appState.graphics->darkGrassTiles = IMG_LoadTexture(appState.renderer,"assets/Tilesets/ground tiles/New tiles/Darker_Grass_Hills_Tiles_v2.png");
-    if (appState.graphics->darkGrassTiles == nullptr) return -1;
-    appState.graphics->darkHillTiles = IMG_LoadTexture(appState.renderer,"assets/Tilesets/ground tiles/New tiles/Darker_Grass_Tiles_v2.png");
+    appState.graphics->inventoryUi = IMG_LoadTexture(appState.renderer,"assets/InventoryScreen.png");
+    if (appState.graphics->inventoryUi == nullptr) return -1;
+    appState.graphics->selectedUi = IMG_LoadTexture(appState.renderer,"assets/SelectedButton.png");
+   if (appState.graphics->selectedUi == nullptr) return -1;
     return 0;
 }
 
@@ -149,4 +148,70 @@ void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float
 {
     drawX = entityWorldX - camera.Position.x + camera.width /2.0f;
     drawY = entityWorldY - camera.Position.y + camera.height /2.0f;
+}
+
+void RenderInventory(AppState& appState)
+{
+    const float yDistanceFromPlayer = 2;
+
+    float uiLayerWidth = appState.graphics->inventoryUi->w;
+    float uiLayerHeight = appState.graphics->inventoryUi->h;
+    SDL_FRect src = {0,0,uiLayerWidth,uiLayerHeight};
+
+    appState.uiX = appState.entities[appState.playerIndex].x - uiLayerWidth/2;
+    appState.uiY = appState.entities[appState.playerIndex].y + uiLayerHeight * yDistanceFromPlayer;
+
+    float drawX;
+    float drawY;
+    WorldToScreen(appState.camera,appState.uiX,appState.uiY,drawX,drawY);
+
+    SDL_FRect dest = {drawX,drawY,uiLayerWidth,uiLayerHeight};
+
+    if (!SDL_RenderTexture(appState.renderer,appState.graphics->inventoryUi,&src,&dest))
+    {
+        SDL_Log("Cannot render UI Layer: %s",SDL_GetError());
+    }
+
+    return;
+}
+
+void RenderSelectedButton(AppState& appState)
+{
+    float buttonWidth = appState.graphics->selectedUi->w;
+    float buttonHeight = appState.graphics->selectedUi->h;
+
+    SDL_FRect src = {0,0,buttonWidth,buttonHeight};
+
+    
+
+    float worldX = appState.uiX + INVENTORY_OFFSET + buttonWidth*appState.selectedItemUiIndex;
+    float worldY = appState.uiY + INVENTORY_TOP_TO_BUTTONS;
+
+    float drawX;
+    float drawY;
+
+    WorldToScreen(appState.camera,worldX,worldY,drawX,drawY);
+    SDL_FRect dest = {drawX,drawY,buttonWidth,buttonHeight};
+
+    if (!SDL_RenderTexture(appState.renderer,appState.graphics->selectedUi,&src,&dest))
+    {
+        SDL_Log("Could not render selected button: %s ",SDL_GetError());
+    }
+
+    return;
+}
+
+void UpdateSelectedItem(AppState& appState)
+{
+    const bool* keyStates = SDL_GetKeyboardState(nullptr);
+
+    if (keyStates == nullptr) return;
+    if (!keyStates) return;
+
+    if (keyStates[SDL_SCANCODE_1]) appState.selectedItemUiIndex = 0;
+    else if (keyStates[SDL_SCANCODE_2]) appState.selectedItemUiIndex = 1;
+    else if (keyStates[SDL_SCANCODE_3]) appState.selectedItemUiIndex = 2;
+    else if (keyStates[SDL_SCANCODE_4]) appState.selectedItemUiIndex = 3;
+    else if (keyStates[SDL_SCANCODE_5]) appState.selectedItemUiIndex = 4;
+    else if (keyStates[SDL_SCANCODE_6]) appState.selectedItemUiIndex = 5;
 }
