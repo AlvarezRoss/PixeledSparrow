@@ -10,7 +10,11 @@ void DrawMapGrid(AppState& appState)
     {
         for (int y = 0; y < MAP_HEIGHT; y++)
         {
-            SDL_FRect tile = {static_cast<float>(x*TILE_SIZE),static_cast<float>(y*TILE_SIZE),TILE_SIZE,TILE_SIZE};
+            
+            float onScreenX;
+            float onScreenY;
+            WorldToScreen(appState.camera,static_cast<float>(x*TILE_SIZE),static_cast<float>(y*TILE_SIZE),onScreenX,onScreenY);
+            SDL_FRect tile = {onScreenX,onScreenY,TILE_SIZE,TILE_SIZE};
             if (appState.mouseButton != 0 && SDL_PointInRectFloat(&mousePoint,&tile))
             {
                 SDL_Log("Clicked on tile x:%d,y:%d\n",x,y);
@@ -74,7 +78,6 @@ int InitMapLayers(std::string& xml, AppState& appState)
             }
         }        
     }
-
     return 0;
 }
 
@@ -91,17 +94,22 @@ void DrawMap(AppState& appState)
                 tile -= TILED_OFFSET;
                 float tileX = tile % appState.map.numberOfColumns;
                 float tileY = tile / appState.map.numberOfColumns;
-
+                
                 const SDL_FRect src = {
                     tileX * TILE_SIZE,
                     tileY * TILE_SIZE,
                     TILE_SIZE,
                     TILE_SIZE
                 };
-
+                // Transforms position to work position
+                float worldX = static_cast<float>(x * TILE_SIZE);
+                float worldY = static_cast<float>(y * TILE_SIZE);
+                float drawX = 0.0f;
+                float drawY = 0.0f;
+                WorldToScreen(appState.camera,worldX,worldY,drawX,drawY);
                 const SDL_FRect dest = {
-                    static_cast<float>(x * TILE_SIZE),
-                    static_cast<float>(y * TILE_SIZE),
+                    drawX,
+                    drawY,
                     TILE_SIZE,
                     TILE_SIZE
                 };
