@@ -32,6 +32,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
         SDL_Log("Could not create window and renderer: %s",SDL_GetError());
         return SDL_APP_FAILURE;
     }
+    state->camera = {{0,0},800.0f,600.0f};
+
     if (InitGraphics(*state) != 0)
     {
         SDL_Log("Could not init graphics: %s",SDL_GetError());
@@ -55,7 +57,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
     AppState *state = (AppState*)appstate;
-    Render(*state);
+    
     
     PlayerMovement(state->entities[state->playerIndex],*state);
     for (int i = 0; i < MAX_ENTITIES ; i++)
@@ -67,6 +69,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         UpdateEntityAnimation(state->entities[state->playerIndex],*state);
         
     }
+    UpdateCameraPosition(state->entities[state->playerIndex],state->camera);
+    Render(*state);
     return SDL_APP_CONTINUE;
 }
 
@@ -82,6 +86,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
         state->mouseButton = 0;
+        break;
+    case SDL_EVENT_WINDOW_RESIZED:
         break;
     default:
         break;
@@ -105,12 +111,18 @@ void Render(AppState& appState)
     //SDL_SetRenderDrawColor(appState.renderer,0,255,0,255);
     DrawMapGrid(appState);
     DrawMap(appState);
+    float drawX = 0.0f;
+    float drawY = 0.0f;
     for (int i = 0; i < MAX_ENTITIES; i++)
     {
+        drawX = appState.entities[i].x;
+        drawY = appState.entities[i].y;
+
         switch (appState.entities[i].entityType)
         {
         case ENTITY_PLAYER:
-            RenderEntity(appState.entities[i],*appState.renderer);
+            WorldToScreen(appState.camera,appState.entities[i].x,appState.entities[i].y, drawX,drawY);
+            RenderEntity(appState.entities[i],*appState.renderer,drawX,drawY);
             break;
         
         default:
