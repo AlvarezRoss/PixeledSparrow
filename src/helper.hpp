@@ -17,6 +17,8 @@
 #define TILE_MAP_HEIGHT 1024
 #define TILE_SIZE 16
 #define TILED_OFFSET 1
+#define MAP_PIXEL_COUNT 1600
+#define SPRITE_SIZE 16
 
 enum ENTITY_TYPE
 {
@@ -72,6 +74,13 @@ enum CHARACTER_ANIMATION_ROW
 
     TOTAL,
 };
+
+struct Vector2
+{
+    float x;
+    float y;
+};
+
 struct Graphics
 {
     SDL_Texture *playerTexture;
@@ -123,6 +132,14 @@ struct Entity
     float x;
     float y;
 };
+
+struct Camera
+{
+    Vector2 Position;
+    float width;
+    float height; 
+};
+
 struct AppState
 {
     SDL_Window *window;
@@ -134,6 +151,7 @@ struct AppState
     std::unique_ptr<Animation> characterAnimation;
     std::array<Entity,MAX_ENTITIES> entities{};
     Map map;
+    Camera camera;
     int playerIndex;
     int windowHeight;
     int windowWidth;
@@ -142,15 +160,15 @@ struct AppState
     float mouseY;
 };
 
-
-
 void HandleAppEvent(AppState& gameState);
 void CleanUp(SDL_Window* window);
 int InitGraphics(AppState& appState);
 void SetEntities(AppState& appState);
-void RenderEntity(Entity& entity, SDL_Renderer& renderer);
+void RenderEntity(Entity& entity, SDL_Renderer& renderer, float drawX, float drawY);
 void InitEntities(AppState& appState);
 // player is contained wihtin the entity array inside appState but for ease of use in the function it is passed as a separete parameter
 void PlayerMovement(Entity& player, AppState& appState);
 void UpdateEntityPosition(Entity& entity);
 void UpdateEntityState(Entity& entity);
+void UpdateCameraPosition(Entity& player, Camera& camera);
+void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);

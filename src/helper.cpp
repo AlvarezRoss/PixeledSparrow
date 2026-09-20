@@ -71,13 +71,15 @@ void InitEntities(AppState& appState)
     }
 }
 
-void RenderEntity(Entity& entity, SDL_Renderer& renderer)
+void RenderEntity(Entity& entity, SDL_Renderer& renderer, float drawX, float drawY)
 {
     SDL_FRect srcRect = entity.currentAnimation->frameRect;
     srcRect.y = entity.currentAnimation->frameHeight * entity.currentAnimation->row;
+    drawX -= SPRITE_SIZE/2.0f;
+    drawY -= SPRITE_SIZE/2.0f;
     SDL_FRect destRect = {
-        entity.x,
-        entity.y,
+        drawX,
+        drawY,
         entity.currentAnimation->frameWidth,
         entity.currentAnimation->frameHeight
     };
@@ -117,7 +119,6 @@ void PlayerMovement(Entity& player, AppState& appState)
         player.speedX = 1;
         player.playerDirection = RIGHT;
     }
-
 }
 
 void UpdateEntityPosition(Entity& entity)
@@ -136,4 +137,16 @@ void UpdateEntityState(Entity& entity)
         return;
     }
     entity.entityState = ENTITY_STATE_WALKING;
+}
+
+void UpdateCameraPosition(Entity& player, Camera& camera)
+{
+    camera.Position.x = player.x + player.currentAnimation->frameWidth / 2.0f;
+    camera.Position.y = player.y + player.currentAnimation->frameHeight / 2.0f;
+}
+
+void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY)
+{
+    drawX = entityWorldX - camera.Position.x + camera.width /2.0f;
+    drawY = entityWorldY - camera.Position.y + camera.height /2.0f;
 }
