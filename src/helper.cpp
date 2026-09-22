@@ -128,14 +128,19 @@ void UpdateEntityPosition(Entity& entity)
     entity.speedX = 0.0f;
     entity.speedY = 0.0f;
 }
-void UpdateEntityState(Entity& entity)
+void UpdateEntityState(AppState& appState, Entity& entity)
 {
-    if (entity.speedX == 0.0f && entity.speedY == 0.0f)
+    if (entity.entityType == ENTITY_PLAYER)
     {
-        entity.entityState = ENTITY_STATE_IDLE;
+        HandlePlayerState(appState, entity);
         return;
     }
-    entity.entityState = ENTITY_STATE_WALKING;
+    if (entity.speedX != 0.0f || entity.speedY != 0.0f)
+    {
+        entity.entityState = ENTITY_STATE_WALKING;
+        return;
+    }
+    entity.entityState = ENTITY_STATE_IDLE;    
 }
 
 void UpdateCameraPosition(Entity& player, Camera& camera)
@@ -214,4 +219,37 @@ void UpdateSelectedItem(AppState& appState)
     else if (keyStates[SDL_SCANCODE_4]) appState.selectedItemUiIndex = 3;
     else if (keyStates[SDL_SCANCODE_5]) appState.selectedItemUiIndex = 4;
     else if (keyStates[SDL_SCANCODE_6]) appState.selectedItemUiIndex = 5;
+    else if (keyStates[SDL_SCANCODE_7]) appState.selectedItemUiIndex = 6;
+}
+
+void HandlePlayerState(AppState& appState, Entity& player)
+{   
+    if (player.speedX != 0 || player.speedY != 0)
+    {
+        player.entityState = ENTITY_STATE_WALKING;
+        return; 
+    }
+    if (appState.mouseButton != SDL_BUTTON_LMASK)
+    {
+        player.entityState = ENTITY_STATE_IDLE;
+        return;
+    }
+
+    if (appState.selectedItemUiIndex == 0) return;
+
+    switch (appState.selectedItemUiIndex)
+    {
+    case 1:
+        player.entityState = ENTITY_STATE_FARMING;
+        break;
+    case 2:
+        player.entityState = ENTITY_STATE_CHOPPING;
+        break;
+    case 3:
+        player.entityState = ENTITY_STATE_WATERING;
+        break;
+    default:
+        break;
+    }
+
 }

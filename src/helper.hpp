@@ -41,7 +41,10 @@ enum ENTITY_STATE
 {
     ENTITY_STATE_IDLE,
     ENTITY_STATE_WALKING,
-
+    ENTITY_STATE_RUNNING, // Not used added so calculation works
+    ENTITY_STATE_FARMING,
+    ENTITY_STATE_CHOPPING,
+    ENTITY_STATE_WATERING,
     ENTITY_STATE_TOTAL,
     ENTITY_STATE_INACTIVE,
     ENTITY_STATE_UNINITIALIZED
@@ -73,6 +76,22 @@ enum CHARACTER_ANIMATION_ROW
     WALKING_BACK,
     WALKING_RIGHT,
     WALKING_LEFT,
+
+
+    HOE_FRONT,
+    HOE_BACK,
+    HOE_RIGHT,
+    HOE_LEFT,
+
+    CHOP_FRONT,
+    CHOP_BACK,
+    CHOP_RIGHT,
+    CHOP_LEFT,
+
+    WATERING_FRONT,
+    WATERING_BACK,
+    WATERING_RIGHT,
+    WATERING_LEFT,
 
     TOTAL,
 };
@@ -173,9 +192,10 @@ void InitEntities(AppState& appState);
 // player is contained wihtin the entity array inside appState but for ease of use in the function it is passed as a separete parameter
 void PlayerMovement(Entity& player, AppState& appState);
 void UpdateEntityPosition(Entity& entity);
-void UpdateEntityState(Entity& entity);
+void UpdateEntityState(AppState& appState, Entity& entity);
 void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
 void RenderInventory(AppState& appState);
 void RenderSelectedButton(AppState& appState);
 void UpdateSelectedItem(AppState& appState);
+void HandlePlayerState(AppState& appState, Entity& player);
