@@ -64,7 +64,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     for (int i = 0; i < MAX_ENTITIES ; i++)
     {
         if (state->entities[i].entityType == ENTITY_NONE) continue;
-        UpdateEntityState(state->entities[i]);
+        UpdateEntityState(*state,state->entities[i]);
         SetAnimation(state->entities[i],*state);
         UpdateEntityPosition(state->entities[i]);
         UpdateEntityAnimation(state->entities[state->playerIndex],*state);
