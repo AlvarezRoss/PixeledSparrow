@@ -1,0 +1,6 @@
+- Adding items to item bar.
+- Make an real map.
+- Handle collisions.
+- Update tiles based on player action.
+- Implement animals.
+- Implement NPCs
