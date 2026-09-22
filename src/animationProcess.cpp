@@ -76,7 +76,6 @@ void SetPlayerAnimation(Entity& player, AppState& appState)
         static_cast<int>(player.entityState) * CHARACTER_DIRECTIONS +
         static_cast<int>(player.playerDirection)  
     );
-
     appState.characterAnimation->row = player.characterAnimationRow;
 }
 // This function is as of yet not neededs
