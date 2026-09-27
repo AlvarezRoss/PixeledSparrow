@@ -3,6 +3,7 @@
 #include "helper.hpp"
 #include "animationProcess.hpp"
 #include "map.hpp"
+#include "inventory.hpp"
 
 void Render(AppState& appState);
 
@@ -45,6 +46,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
     SetEntities(*state);
     InitEntities(*state);
     InitAnimations(*state);
+    InitInventory(*state,*state->graphics.get());
     if (InitMap(state->map,*state) != 0)
     {
         SDL_Log("Could not init map: %s",SDL_GetError());
@@ -72,7 +74,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     }
     UpdateCameraPosition(state->entities[state->playerIndex],state->camera);
     Render(*state);
-    UpdateSelectedItem(*state);
+    UpdateInventoryState(*state);
+    HandleItemSelection(*state,state->inventory);
     return SDL_APP_CONTINUE;
 }
 
@@ -113,8 +116,10 @@ void Render(AppState& appState)
     //SDL_SetRenderDrawColor(appState.renderer,0,255,0,255);
     DrawMapGrid(appState);
     DrawMap(appState);
-    RenderInventory(appState);
-    RenderSelectedButton(appState);
+    RenderItemSelector(appState);
+    RenderItemSlots(appState,appState.inventory);
+    //if (appState.inventory.open) 
+    RenderInventoryWindow(appState,appState.inventory);
     float drawX = 0.0f;
     float drawY = 0.0f;
     for (int i = 0; i < MAX_ENTITIES; i++)
