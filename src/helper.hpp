@@ -8,6 +8,7 @@
 #include <array>
 #include <iostream>
 #include <string>
+#include "inventory.hpp"
 
 #define MAX_ENTITIES 255
 #define MAP_LAYERS 3
@@ -19,8 +20,7 @@
 #define TILED_OFFSET 1
 #define MAP_PIXEL_COUNT 1600
 #define SPRITE_SIZE 16
-#define INVENTORY_TOP_TO_BUTTONS 35
-#define INVENTORY_OFFSET 11
+
 
 enum ENTITY_TYPE
 {
@@ -108,7 +108,9 @@ struct Graphics
     SDL_Texture *chickenTexture;
     SDL_Texture *cowTexture;
     SDL_Texture *inventoryUi;
+    SDL_Texture *itemSelector;
     SDL_Texture *selectedUi;
+    SDL_Texture *inventorySlot;
 };
 struct Animation
 {
@@ -172,6 +174,7 @@ struct AppState
     std::array<Entity,MAX_ENTITIES> entities{};
     Map map;
     Camera camera;
+    Inventory inventory;
     int playerIndex;
     int windowHeight;
     int windowWidth;
@@ -195,7 +198,4 @@ void UpdateEntityPosition(Entity& entity);
 void UpdateEntityState(AppState& appState, Entity& entity);
 void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
-void RenderInventory(AppState& appState);
-void RenderSelectedButton(AppState& appState);
-void UpdateSelectedItem(AppState& appState);
 void HandlePlayerState(AppState& appState, Entity& player);
