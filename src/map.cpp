@@ -27,8 +27,7 @@ void DrawMapGrid(AppState& appState)
 int InitMap(Map& map, AppState& appState)
 {
     // We begin by opening the file and beginning a stream
-    map.mapTexture = IMG_LoadTexture(appState.renderer,map.pngPath.c_str());
-    if (map.mapTexture == nullptr) return -1;
+    map.mapTexture = appState.graphics->mapTexture;
 
     std::ifstream fileStream(map.path);
 
