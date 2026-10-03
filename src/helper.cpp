@@ -41,6 +41,8 @@ int InitGraphics(AppState& appState)
     appState.graphics->selectedUi = IMG_LoadTexture(appState.renderer,"assets/SelectedButton.png");
     if (appState.graphics->selectedUi == nullptr) return -1;
     appState.graphics->inventorySlot = IMG_LoadTexture(appState.renderer,"assets/inventory_example_with_slots.png");
+    if (appState.graphics->inventorySlot == nullptr) return -1;
+    appState.graphics->mapTexture = IMG_LoadTexture(appState.renderer,"assets/spr_tileset_sunnysideworld_16px.png");
     if (appState.graphics->inventorySlot == nullptr) return -1; 
     return 0;
 }
@@ -171,22 +173,4 @@ void HandlePlayerState(AppState& appState, Entity& player)
         player.entityState = ENTITY_STATE_IDLE;
         return;
     }
-
-    if (appState.selectedItemUiIndex == 0) return;
-
-    switch (appState.selectedItemUiIndex)
-    {
-    case 1:
-        player.entityState = ENTITY_STATE_FARMING;
-        break;
-    case 2:
-        player.entityState = ENTITY_STATE_CHOPPING;
-        break;
-    case 3:
-        player.entityState = ENTITY_STATE_WATERING;
-        break;
-    default:
-        break;
-    }
-
 }

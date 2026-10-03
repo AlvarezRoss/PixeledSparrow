@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include "inventory.hpp"
+#include "items.hpp"
 
 #define MAX_ENTITIES 255
 #define MAP_LAYERS 3
@@ -20,6 +21,7 @@
 #define TILED_OFFSET 1
 #define MAP_PIXEL_COUNT 1600
 #define SPRITE_SIZE 16
+#define GAME_ITEMS 5
 
 
 enum ENTITY_TYPE
@@ -111,6 +113,7 @@ struct Graphics
     SDL_Texture *itemSelector;
     SDL_Texture *selectedUi;
     SDL_Texture *inventorySlot;
+    SDL_Texture *mapTexture;
 };
 struct Animation
 {
@@ -172,6 +175,7 @@ struct AppState
     std::unique_ptr<AnimalAnimations> chickenAnimations;
     std::unique_ptr<Animation> characterAnimation;
     std::array<Entity,MAX_ENTITIES> entities{};
+    std::array<Item,GAME_ITEMS> gameItems{};
     Map map;
     Camera camera;
     Inventory inventory;
