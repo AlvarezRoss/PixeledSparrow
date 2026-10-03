@@ -8,6 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(external/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(external/SDL_image EXCLUDE_FROM_ALL)
-add_executable(PixeledSparrow src/main.cpp src/helper.cpp src/animationProcess.cpp src/map.cpp src/inventory.cpp)
+add_executable(PixeledSparrow src/main.cpp src/helper.cpp src/animationProcess.cpp src/map.cpp src/inventory.cpp src/items.cpp)
 
 target_link_libraries(PixeledSparrow PRIVATE SDL3_image::SDL3_image SDL3::SDL3)
