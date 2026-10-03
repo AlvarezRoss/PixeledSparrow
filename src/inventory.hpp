@@ -48,6 +48,9 @@ struct Inventory
     SDL_Texture * itemSlotTexture = nullptr;
     bool open = false;
     int selectedItemIndex = 0; // Used in the selector bar
+    Item *selectedItem = nullptr;
+    InventorySlot *srcSlot = nullptr;
+    InventorySlot *destSlot = nullptr;
 };
 
 // Forward declaration
@@ -60,5 +63,7 @@ void InitInventory(AppState& appState, Graphics& graphics);
 void RenderItemSelector(AppState& appState);
 void RenderItemSlots(AppState& appState, Inventory& inventory);
 void RenderInventoryWindow(AppState& appState, Inventory& inventory);
-void UpdateInventoryState(AppState& appState);
-void HandleItemSelection(AppState& appState, Inventory& inventory);
+void UpdateInventoryState(AppState& appState, SDL_Event& event);
+void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event);
+void HandleSelection(Inventory& inventory, InventorySlot& slot);
+void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item);

@@ -59,6 +59,8 @@ void RenderItemSlots(AppState& appState, Inventory& inventory)
         {
             SDL_Log("Cannot render Item Selection Slots number %d : %s",count,SDL_GetError());
         }
+        if (inventory.itemSelectorSlots[count].item == nullptr) continue;
+        RenderInventoryItems(appState,inventory.itemSelectorSlots[count].dest,inventory.itemSelectorSlots[count].item);
     }
     return;
 }
@@ -84,28 +86,67 @@ void RenderInventoryWindow(AppState& appState, Inventory& inventory)
             
             
             SDL_RenderTexture(appState.renderer,appState.graphics->inventorySlot,&src,&inventory.inventorySlots[slotCounter].dest);
+            
+            if (inventory.inventorySlots[slotCounter].item != nullptr)
+                RenderInventoryItems(appState,inventory.inventorySlots[slotCounter].dest,inventory.inventorySlots[slotCounter].item);
             ++slotCounter;
         }
     }
 }
 
-void UpdateInventoryState(AppState& appState)
+void UpdateInventoryState(AppState& appState, SDL_Event& event)
 {
+    
+    if (event.key.repeat) return;
     const bool* keyStates = SDL_GetKeyboardState(nullptr);
-
-    if (keyStates == nullptr) return;
-    if (keyStates[SDL_SCANCODE_I]) appState.inventory.open != appState.inventory.open;
+    if (keyStates == nullptr) return; 
+    if (keyStates[SDL_SCANCODE_I]) appState.inventory.open = !appState.inventory.open;
+    
+    
 }
 
-void HandleItemSelection(AppState& appState, Inventory& inventory)
+void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event)
 {
-    const bool* keys = SDL_GetKeyboardState(nullptr);
+    if (event.key.repeat) return;
+    if (appState.mouseButton != SDL_BUTTON_LMASK) return;
 
-    if (keys[SDL_SCANCODE_1]) inventory.selectedItemIndex = 0;
-    else if (keys[SDL_SCANCODE_2]) inventory.selectedItemIndex = 1;
-    else if (keys[SDL_SCANCODE_3]) inventory.selectedItemIndex = 2;
-    else if (keys[SDL_SCANCODE_4]) inventory.selectedItemIndex = 3;
-    else if (keys[SDL_SCANCODE_5]) inventory.selectedItemIndex = 4;
-    else if (keys[SDL_SCANCODE_6]) inventory.selectedItemIndex = 5;
-    else if (keys[SDL_SCANCODE_7]) inventory.selectedItemIndex = 6;
+    const int inventorySize = inventory.inventorySlots.size();
+    const SDL_FPoint mousePoint = {appState.mouseX,appState.mouseY}; 
+    for (int i = 0; i < inventorySize ; i++)
+    {
+        if (SDL_PointInRectFloat(&mousePoint,&inventory.inventorySlots[i].dest))
+        {
+            HandleSelection(inventory,inventory.inventorySlots[i]);
+        }
+    }
+}
+
+void HandleSelection(Inventory& inventory, InventorySlot& slot)
+{
+    SDL_Log("Called");
+    if (inventory.selectedItem == nullptr && slot.item == nullptr) return;
+    if (inventory.selectedItem == nullptr)
+    {
+        inventory.selectedItem = slot.item;
+        inventory.srcSlot = &slot;
+        return;
+    }
+    if (slot.item != nullptr) return;
+    inventory.srcSlot->item = nullptr;
+    slot.item = inventory.selectedItem;
+    inventory.selectedItem = nullptr;
+}
+
+void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item)
+{
+    if(item == nullptr) return;
+    float tileX = item->tileSetId % appState.map.numberOfColumns;
+    float tileY = item->tileSetId / appState.map.numberOfColumns;
+    SDL_FRect src = {tileX * TILE_SIZE,tileY* TILE_SIZE,TILE_SIZE,TILE_SIZE};
+    
+    if (!SDL_RenderTexture(appState.renderer,item->texture,&src,&drawRectangle))
+    {
+        SDL_Log("Could not render item texture: %s \n",SDL_GetError());
+    }
+    return;
 }
