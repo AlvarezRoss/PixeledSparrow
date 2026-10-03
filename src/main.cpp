@@ -4,6 +4,7 @@
 #include "animationProcess.hpp"
 #include "map.hpp"
 #include "inventory.hpp"
+#include "items.hpp"
 
 void Render(AppState& appState);
 
@@ -52,6 +53,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
         SDL_Log("Could not init map: %s",SDL_GetError());
         return SDL_APP_FAILURE;
     } 
+    InitItems(*state);
     *appstate = state.release();
     return SDL_APP_CONTINUE;
 }
@@ -74,8 +76,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     }
     UpdateCameraPosition(state->entities[state->playerIndex],state->camera);
     Render(*state);
-    UpdateInventoryState(*state);
-    HandleItemSelection(*state,state->inventory);
     return SDL_APP_CONTINUE;
 }
 
@@ -88,12 +88,15 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
         return SDL_APP_SUCCESS;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
         state->mouseButton = event->button.button;
+        if (state->inventory.open) ProcessInventory(*state,state->inventory,*event);
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
         state->mouseButton = 0;
         break;
     case SDL_EVENT_WINDOW_RESIZED:
         break;
+    case SDL_EVENT_KEY_DOWN:
+        if (event->button.button == SDL_SCANCODE_I) UpdateInventoryState(*state,*event);
     default:
         break;
     }
@@ -105,6 +108,16 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result)
     // SDL will clean itself up we don't need to do anything SDL Specific here.
     // However we will need to free our heap memory here
     std::unique_ptr<AppState> state (static_cast<AppState*>(appstate));
+    if (state->graphics->chickenTexture != nullptr) SDL_DestroyTexture(state->graphics->chickenTexture);
+    if (state->graphics->cowTexture != nullptr) SDL_DestroyTexture(state->graphics->cowTexture);
+    if (state->graphics->inventorySlot != nullptr) SDL_DestroyTexture(state->graphics->inventorySlot);
+    if (state->graphics->itemSelector != nullptr) SDL_DestroyTexture(state->graphics->itemSelector);
+    if (state->graphics->mapTexture != nullptr) SDL_DestroyTexture(state->graphics->mapTexture);
+    if (state->graphics->playerTexture != nullptr) SDL_DestroyTexture(state->graphics->playerTexture);
+    if (state->graphics->selectedUi != nullptr) SDL_DestroyTexture(state->graphics->selectedUi);
+    if (state->renderer != nullptr) SDL_DestroyRenderer(state->renderer);
+    if (state->window != nullptr) SDL_DestroyWindow(state->window);
+
 }
 
 void Render(AppState& appState)
@@ -118,8 +131,7 @@ void Render(AppState& appState)
     DrawMap(appState);
     RenderItemSelector(appState);
     RenderItemSlots(appState,appState.inventory);
-    //if (appState.inventory.open) 
-    RenderInventoryWindow(appState,appState.inventory);
+    if (appState.inventory.open) RenderInventoryWindow(appState,appState.inventory);
     float drawX = 0.0f;
     float drawY = 0.0f;
     for (int i = 0; i < MAX_ENTITIES; i++)
