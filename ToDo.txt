@@ -1,4 +1,4 @@
-- Adding items to item bar.
+- Inventory - Done.
 - Make an real map.
 - Handle collisions.
 - Update tiles based on player action.
