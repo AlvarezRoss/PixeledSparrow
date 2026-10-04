@@ -97,6 +97,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
         break;
     case SDL_EVENT_KEY_DOWN:
         if (event->button.button == SDL_SCANCODE_I) UpdateInventoryState(*state,*event);
+        UpdateItemSelector(state->inventory);
     default:
         break;
     }
