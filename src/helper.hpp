@@ -203,3 +203,4 @@ void UpdateEntityState(AppState& appState, Entity& entity);
 void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
 void HandlePlayerState(AppState& appState, Entity& player);
+void HandlePlayerAction(Inventory& inventory, Entity& player);

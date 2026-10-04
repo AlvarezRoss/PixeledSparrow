@@ -171,6 +171,29 @@ void HandlePlayerState(AppState& appState, Entity& player)
     if (appState.mouseButton != SDL_BUTTON_LMASK)
     {
         player.entityState = ENTITY_STATE_IDLE;
-        return;
+    }
+    else
+    {
+        HandlePlayerAction(appState.inventory,player);
+    }
+}
+
+void HandlePlayerAction(Inventory& inventory, Entity& player)
+{
+    if (inventory.itemInUse == nullptr) return;
+    if (inventory.open) return;
+    switch (inventory.itemInUse->name)
+    {
+    case ITEM_AXE:
+        player.entityState = ENTITY_STATE_CHOPPING;
+        break;
+    case ITEM_HOE:
+        player.entityState = ENTITY_STATE_FARMING;
+        break;
+    case ITEM_WATERCAN:
+        player.entityState = ENTITY_STATE_WATERING;
+        break;
+    default:
+        break;
     }
 }
