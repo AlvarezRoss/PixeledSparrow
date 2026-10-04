@@ -49,6 +49,7 @@ struct Inventory
     bool open = false;
     int selectedItemIndex = 0; // Used in the selector bar
     Item *selectedItem = nullptr;
+    Item *itemInUse = nullptr;
     InventorySlot *srcSlot = nullptr;
     InventorySlot *destSlot = nullptr;
 };
@@ -65,5 +66,6 @@ void RenderItemSlots(AppState& appState, Inventory& inventory);
 void RenderInventoryWindow(AppState& appState, Inventory& inventory);
 void UpdateInventoryState(AppState& appState, SDL_Event& event);
 void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event);
-void HandleSelection(Inventory& inventory, InventorySlot& slot);
+void HandleInventorySelection(Inventory& inventory, InventorySlot& slot);
 void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item);
+void UpdateItemSelector(Inventory& inventory);

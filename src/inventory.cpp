@@ -116,14 +116,22 @@ void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event
     {
         if (SDL_PointInRectFloat(&mousePoint,&inventory.inventorySlots[i].dest))
         {
-            HandleSelection(inventory,inventory.inventorySlots[i]);
+            HandleInventorySelection(inventory,inventory.inventorySlots[i]);
+        }
+    }
+
+    const int itemSelectorSize = inventory.itemSelectorSlots.size();
+    for (int i = 0; i < itemSelectorSize; i++)
+    {
+        if (SDL_PointInRectFloat(&mousePoint,&inventory.itemSelectorSlots[i].dest))
+        {
+            HandleInventorySelection(inventory,inventory.itemSelectorSlots[i]);
         }
     }
 }
 
-void HandleSelection(Inventory& inventory, InventorySlot& slot)
+void HandleInventorySelection(Inventory& inventory, InventorySlot& slot)
 {
-    SDL_Log("Called");
     if (inventory.selectedItem == nullptr && slot.item == nullptr) return;
     if (inventory.selectedItem == nullptr)
     {
@@ -136,7 +144,6 @@ void HandleSelection(Inventory& inventory, InventorySlot& slot)
     slot.item = inventory.selectedItem;
     inventory.selectedItem = nullptr;
 }
-
 void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item)
 {
     if(item == nullptr) return;
@@ -149,4 +156,22 @@ void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* it
         SDL_Log("Could not render item texture: %s \n",SDL_GetError());
     }
     return;
+}
+
+void UpdateItemSelector(Inventory& inventory)
+{
+    const bool* keys = SDL_GetKeyboardState(nullptr);
+    if (!keys) return;
+
+    if (keys[SDL_SCANCODE_1]) inventory.selectedItemIndex = 0;
+    else if (keys[SDL_SCANCODE_2]) inventory.selectedItemIndex = 1;
+    else if (keys[SDL_SCANCODE_3]) inventory.selectedItemIndex = 2;
+    else if (keys[SDL_SCANCODE_4]) inventory.selectedItemIndex = 3;
+    else if (keys[SDL_SCANCODE_5]) inventory.selectedItemIndex = 4;
+    else if (keys[SDL_SCANCODE_6]) inventory.selectedItemIndex = 5;
+    else if (keys[SDL_SCANCODE_7]) inventory.selectedItemIndex = 6;
+
+    // This can set the itemInUse as a nullptr. Ensure to check if not nullptr before doing anything with it
+    inventory.itemInUse = inventory.itemSelectorSlots[inventory.selectedItemIndex].item; 
+    
 }
