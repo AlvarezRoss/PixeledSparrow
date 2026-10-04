@@ -24,6 +24,8 @@ void InitItems(AppState& appState)
             break;
         case ITEM_HOE:
             appState.gameItems[i].tileSetId = HOE_ID;
+            appState.inventory.items[2] = appState.gameItems[i];
+            appState.inventory.inventorySlots[2].item = &appState.inventory.items[2];
             break;
         case ITEM_WOOD:
             appState.gameItems[i].tileSetId = WOOD_ID;
@@ -33,6 +35,8 @@ void InitItems(AppState& appState)
             break;
         case ITEM_WATERCAN:
             appState.gameItems[i].tileSetId = WATERCAN_ID;
+            appState.inventory.items[3] = appState.gameItems[i];
+            appState.inventory.inventorySlots[3].item = &appState.inventory.items[3];
             break;
         default:
             break;
