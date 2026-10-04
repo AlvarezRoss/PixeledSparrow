@@ -15,10 +15,10 @@ void DrawMapGrid(AppState& appState)
             float onScreenY;
             WorldToScreen(appState.camera,static_cast<float>(x*TILE_SIZE),static_cast<float>(y*TILE_SIZE),onScreenX,onScreenY);
             SDL_FRect tile = {onScreenX,onScreenY,TILE_SIZE,TILE_SIZE};
-            if (appState.mouseButton != 0 && SDL_PointInRectFloat(&mousePoint,&tile))
-            {
-                SDL_Log("Clicked on tile x:%d,y:%d\n",x,y);
-            }
+            // if (appState.mouseButton != 0 && SDL_PointInRectFloat(&mousePoint,&tile))
+            // {
+            //     SDL_Log("Clicked on tile x:%d,y:%d\n",x,y);
+            // }
         }
     }
     SDL_SetRenderDrawColor(appState.renderer,0,0,0,0);
