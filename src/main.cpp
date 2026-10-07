@@ -65,6 +65,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     
     
     PlayerMovement(state->entities[state->playerIndex],*state);
+    AnimateWater(*state);
     for (int i = 0; i < MAX_ENTITIES ; i++)
     {
         if (state->entities[i].entityType == ENTITY_NONE) continue;
