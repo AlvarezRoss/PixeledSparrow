@@ -1,3 +1,4 @@
+#include "helper.hpp"
 #include "map.hpp"
 
 
@@ -50,7 +51,7 @@ int InitMap(Map& map, AppState& appState)
 int InitMapLayers(std::string& xml, AppState& appState)
 {
     size_t startPosition = 0;
-    for (int layer = 0; layer < 2; layer++)
+    for (int layer = 0; layer < 4; layer++)
     {
         // Used to find <data.....>
         size_t dataPos = xml.find("<data",startPosition);
@@ -69,6 +70,7 @@ int InitMapLayers(std::string& xml, AppState& appState)
         while (std::getline(stream,value,','))
         {
             appState.map.map[layer][y][x] = std::atoi(value.c_str());
+            if (layer == WATER_LAYER && appState.map.xRiverIndex == 0 && appState.map.map[layer][y][x] == WATER_FIRST_FRAME + TILED_OFFSET) appState.map.xRiverIndex = x; // finds where the river in the map begins
             ++x;
             if (x == MAP_WIDTH)
             {
@@ -82,7 +84,7 @@ int InitMapLayers(std::string& xml, AppState& appState)
 
 void DrawMap(AppState& appState)
 {
-    for (int layer = 0; layer < 2; layer ++)
+    for (int layer = 0; layer < 4; layer ++)
     {
         for (int y = 0; y < MAP_HEIGHT; y++)
         {
@@ -117,4 +119,25 @@ void DrawMap(AppState& appState)
             }
         }
     }
+}
+
+void AnimateWater(AppState& appState)
+{
+    const int riverWidth = 4;
+    const int animationWait = 60;
+    appState.map.frameCounter++;
+    if (appState.map.frameCounter < animationWait/appState.map.waterAnimationSpeed) return;
+    for (int y = 0; y < MAP_HEIGHT; y++)
+    {
+        for (int x = appState.map.xRiverIndex ; x < appState.map.xRiverIndex + riverWidth; x++)
+        {
+            if (appState.map.map[WATER_LAYER][y][x] == WATER_STILL + TILED_OFFSET || appState.map.map[WATER_LAYER][y][x] >= WATER_FOURTH_FRAME + TILED_OFFSET)
+            {
+                appState.map.map[WATER_LAYER][y][x] = WATER_FIRST_FRAME + TILED_OFFSET;
+                continue;
+            }
+            appState.map.map[WATER_LAYER][y][x]++;
+        }
+    }
+    appState.map.frameCounter = 0;    
 }
