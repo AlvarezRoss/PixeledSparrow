@@ -12,7 +12,7 @@
 #include "items.hpp"
 
 #define MAX_ENTITIES 255
-#define MAP_LAYERS 3
+#define MAP_LAYERS 5
 #define MAP_WIDTH 100
 #define MAP_HEIGHT 100
 #define TILE_MAP_WIDTH 1024
@@ -136,6 +136,9 @@ struct Map
     const std::string pngPath = "assets/spr_tileset_sunnysideworld_16px.png";
     int numberOfColumns = TILE_MAP_WIDTH/TILE_SIZE;
     SDL_Texture *mapTexture = nullptr;
+    int xRiverIndex = 0; // used to find where the big river in the map starts
+    int frameCounter = 0; // Used to control water animation
+    int waterAnimationSpeed = 10; // Used to control water animation speed change
 };
 
 struct AnimalAnimations
