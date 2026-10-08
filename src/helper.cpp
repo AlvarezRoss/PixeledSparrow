@@ -124,6 +124,11 @@ void PlayerMovement(Entity& player, AppState& appState)
         player.speedX = 1;
         player.playerDirection = RIGHT;
     }
+
+    if (player.x < 0 && player.speedX == -1) player.speedX = 0;
+    if (player.y < 0 && player.speedY == -1) player.speedY = 0;
+    if (player.x > WORLD_WIDTH && player.speedX == 1) player.speedX = 0;
+    if (player.y > WORLD_HEIGHT && player.speedY == 1) player.speedY = 0;
 }
 
 void UpdateEntityPosition(Entity& entity)
@@ -151,14 +156,21 @@ void UpdateEntityState(AppState& appState, Entity& entity)
 
 void UpdateCameraPosition(Entity& player, Camera& camera)
 {
-    camera.Position.x = player.x + player.currentAnimation->frameWidth / 2.0f;
-    camera.Position.y = player.y + player.currentAnimation->frameHeight / 2.0f;
+    camera.Position.x = player.x + player.currentAnimation->frameWidth / 2.0f - camera.width/2.0f;
+    camera.Position.y = player.y + player.currentAnimation->frameHeight / 2.0f - camera.height/2.0f;
+    // Camera boundries
+    
+    if (camera.Position.x < 0) camera.Position.x = 0;
+    if (camera.Position.y < 0) camera.Position.y = 0;
+
+    if (camera.Position.x + camera.width > WORLD_WIDTH) camera.Position.x = WORLD_WIDTH - camera.width;
+    if (camera.Position.y + camera.height > WORLD_HEIGHT) camera.Position.y = WORLD_HEIGHT - camera.height;
 }
 
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY)
 {
-    drawX = entityWorldX - camera.Position.x + camera.width /2.0f;
-    drawY = entityWorldY - camera.Position.y + camera.height /2.0f;
+    drawX = entityWorldX - camera.Position.x; //+ camera.width /2.0f;
+    drawY = entityWorldY - camera.Position.y;// + camera.height /2.0f;
 }
 
 void HandlePlayerState(AppState& appState, Entity& player)
