@@ -12,15 +12,14 @@ void InitInventory(AppState& appState, Graphics& graphics)
 
 void RenderItemSelector(AppState& appState)
 {
-    const float yDistanceFromPlayer = 2;
+    const float yDistanceFromPlayer = 1.25;
 
     float uiLayerWidth = appState.graphics->itemSelector->w;
     float uiLayerHeight = appState.graphics->itemSelector->h;
     SDL_FRect src = {0,0,uiLayerWidth,uiLayerHeight};
 
-    appState.uiX = appState.entities[appState.playerIndex].x - uiLayerWidth/2;
-    appState.uiY = appState.entities[appState.playerIndex].y + uiLayerHeight * yDistanceFromPlayer;
-
+    appState.uiX = appState.camera.Position.x + appState.camera.width/4.0f;
+    appState.uiY = appState.camera.Position.y + appState.camera.height / yDistanceFromPlayer;
     float drawX;
     float drawY;
     WorldToScreen(appState.camera,appState.uiX,appState.uiY,drawX,drawY);
@@ -71,13 +70,20 @@ void RenderInventoryWindow(AppState& appState, Inventory& inventory)
     SDL_FRect src = {ITEM_SLOT_X,ITEM_SLOT_Y,ITEM_SLOT_WIDTH,ITEM_SLOT_HEIGHT};
     int slotCounter = 0;
     float initPosition = appState.entities[appState.playerIndex].x - INVENTORY_SCREEN_OFFSET;
+    float initYPosition = appState.entities[appState.playerIndex].y - appState.graphics->inventorySlot->h;
+    if (initPosition < 0) 
+    {
+        const int Correction = 200; // used to reduce the inventory offset
+        initPosition = appState.entities[appState.playerIndex].x + INVENTORY_SCREEN_OFFSET - Correction;
+    }
+    if (initYPosition < 0) initYPosition = appState.entities[appState.playerIndex].y;
     for (int y = 0; y < INVENTORY_ROWS; y++)
     {
         for (int x = 0; x < INVENTORY_COLUMNS; x++)
         {
             if (slotCounter > 25) return;
             inventory.inventorySlots[slotCounter].worldX = initPosition + ITEM_SLOT_WIDTH * x;
-            inventory.inventorySlots[slotCounter].worldY = appState.entities[appState.playerIndex].y - appState.graphics->inventorySlot->h + ITEM_SLOT_HEIGHT * y;
+            inventory.inventorySlots[slotCounter].worldY = initYPosition + ITEM_SLOT_HEIGHT * y;
             WorldToScreen(appState.camera,inventory.inventorySlots[slotCounter].worldX,inventory.inventorySlots[slotCounter].worldY,
                         inventory.inventorySlots[slotCounter].drawX,inventory.inventorySlots[slotCounter].drawY);
 
