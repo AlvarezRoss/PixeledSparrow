@@ -1,6 +1,9 @@
 - Inventory - Done.
 - Make an real map.
+- Add Camera Boundries - Done.
+- Make the inventory move when on map edges - Done. 
+- Running Water - Done.
 - Handle collisions.
 - Update tiles based on player action.
 - Implement animals.
-- Implement NPCs
+- Implement NPCs.
