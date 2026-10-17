@@ -65,6 +65,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     
     
     PlayerMovement(state->entities[state->playerIndex],*state);
+    UpdateTileIndex(*state,state->entities[state->playerIndex]);
     AnimateWater(*state);
     for (int i = 0; i < MAX_ENTITIES ; i++)
     {
@@ -133,6 +134,7 @@ void Render(AppState& appState)
     DrawMap(appState);
     RenderItemSelector(appState);
     RenderItemSlots(appState,appState.inventory);
+    if (appState.inventory.itemInUse != nullptr && appState.inventory.itemInUse->itemType == STRUCTURE) RenderItemInMap(appState,appState.entities[appState.playerIndex],*appState.inventory.itemInUse);
     if (appState.inventory.open) RenderInventoryWindow(appState,appState.inventory);
     float drawX = 0.0f;
     float drawY = 0.0f;
