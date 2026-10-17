@@ -23,7 +23,8 @@
 #define TILED_OFFSET 1
 #define MAP_PIXEL_COUNT 1600
 #define SPRITE_SIZE 16
-#define GAME_ITEMS 5
+#define GAME_ITEMS 6
+#define FRAME_TO_CHARACTER_OFFSET 8
 
 
 enum ENTITY_TYPE
@@ -106,6 +107,12 @@ struct Vector2
     float y;
 };
 
+struct Vector2Int
+{
+    int x;
+    int y;
+};
+
 struct Graphics
 {
     SDL_Texture *playerTexture;
@@ -157,6 +164,8 @@ struct Entity
     ENTITY_STATE entityState;
     SDL_Texture* entityTexture;
     PLAYER_DIRECTION playerDirection;
+    Vector2 tilemapIndex;
+    SDL_FRect hitBox;
     float speedX;
     float speedY;
     float x;
@@ -209,3 +218,4 @@ void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
 void HandlePlayerState(AppState& appState, Entity& player);
 void HandlePlayerAction(Inventory& inventory, Entity& player);
+void InputHandler(AppState& appState, Entity& player, Inventory& inventory);

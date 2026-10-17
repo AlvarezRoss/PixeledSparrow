@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include "map.hpp"
 
 void CleanUp(SDL_Window* window)
 {
@@ -69,6 +70,7 @@ void InitEntities(AppState& appState)
             appState.entities[i].entityState = ENTITY_STATE_IDLE;
             appState.entities[i].entityTexture = appState.graphics->playerTexture;
             appState.entities[i].currentAnimation = appState.characterAnimation.get();
+            appState.entities[i].hitBox = {appState.entities[i].x,appState.entities[i].y,TILE_SIZE,TILE_SIZE};
             break;
         default:
             break;
@@ -99,7 +101,7 @@ void PlayerMovement(Entity& player, AppState& appState)
 {
     // keyStates is an array of booleans index by SDL_ScanCode which represent the keys true if pressed false if not
     const bool* keyStates = SDL_GetKeyboardState(nullptr);
-
+    
     if (keyStates == nullptr) return;
     if (!keyStates) return;
 
@@ -135,6 +137,8 @@ void UpdateEntityPosition(Entity& entity)
 {
     entity.x += entity.speedX;
     entity.y += entity.speedY;
+    entity.hitBox.x = entity.x + FRAME_TO_CHARACTER_OFFSET;
+    entity.hitBox.y = entity.y + FRAME_TO_CHARACTER_OFFSET;
 
     entity.speedX = 0.0f;
     entity.speedY = 0.0f;
@@ -186,8 +190,15 @@ void HandlePlayerState(AppState& appState, Entity& player)
     }
     else
     {
-        HandlePlayerAction(appState.inventory,player);
+        InputHandler(appState,player,appState.inventory);
     }
+}
+
+void InputHandler(AppState& appState, Entity& player, Inventory& inventory)
+{
+    if (inventory.itemInUse == nullptr) return;
+    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(appState.inventory, player);
+    else PlaceItem(appState.map, player, inventory);
 }
 
 void HandlePlayerAction(Inventory& inventory, Entity& player)
