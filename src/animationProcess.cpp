@@ -78,7 +78,7 @@ void SetPlayerAnimation(Entity& player, AppState& appState)
     );
     appState.characterAnimation->row = player.characterAnimationRow;
 }
-// This function is as of yet not neededs
+// This function is as of yet not needed
 void PlayerAnimationEnd(Entity& player, AppState& appState)
 {
     switch (player.entityState)
