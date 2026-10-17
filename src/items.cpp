@@ -9,9 +9,8 @@ void InitItems(AppState& appState)
         appState.gameItems[i].count = 0;
         appState.gameItems[i].hp = 0;
         appState.gameItems[i].name = static_cast<ITEM>(i);
-        appState.gameItems[i].itemType = static_cast<ITEM_TYPE>(i);
         appState.gameItems[i].texture = appState.graphics->mapTexture;
-        // Giving the player two item types just for testing
+        // Giving the player three item types just for testing
         switch (appState.gameItems[i].name)
         {
         case ITEM_STONE:
@@ -37,6 +36,12 @@ void InitItems(AppState& appState)
             appState.gameItems[i].tileSetId = WATERCAN_ID;
             appState.inventory.items[3] = appState.gameItems[i];
             appState.inventory.inventorySlots[3].item = &appState.inventory.items[3];
+            break;
+        case ITEM_FENCE:
+            appState.gameItems[i].tileSetId = FENCE_BASE_ID;
+            appState.inventory.items[4] = appState.gameItems[i];
+            appState.inventory.inventorySlots[4].item = &appState.inventory.items[4];
+            appState.inventory.items[4].itemType = STRUCTURE;
             break;
         default:
             break;
