@@ -190,12 +190,13 @@ void HandlePlayerState(AppState& appState, Entity& player)
     }
     else
     {
-        InputHandler(appState,player,appState.inventory);
+        InputHandler(appState,player,appState.inventory, *appState.event);
     }
 }
 
-void InputHandler(AppState& appState, Entity& player, Inventory& inventory)
+void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_Event& event)
 {
+    if (event.key.repeat) return;
     if (inventory.itemInUse == nullptr) return;
     if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(appState.inventory, player);
     else PlaceItem(appState.map, player, inventory);

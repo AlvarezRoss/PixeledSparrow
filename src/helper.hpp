@@ -165,6 +165,7 @@ struct Entity
     SDL_Texture* entityTexture;
     PLAYER_DIRECTION playerDirection;
     Vector2 tilemapIndex;
+    Vector2 placementTarget;
     SDL_FRect hitBox;
     float speedX;
     float speedY;
@@ -190,6 +191,7 @@ struct AppState
     std::unique_ptr<Animation> characterAnimation;
     std::array<Entity,MAX_ENTITIES> entities{};
     std::array<Item,GAME_ITEMS> gameItems{};
+    SDL_Event* event;
     Map map;
     Camera camera;
     Inventory inventory;
@@ -218,4 +220,4 @@ void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
 void HandlePlayerState(AppState& appState, Entity& player);
 void HandlePlayerAction(Inventory& inventory, Entity& player);
-void InputHandler(AppState& appState, Entity& player, Inventory& inventory);
+void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_Event& event);
