@@ -1,4 +1,5 @@
 #include "animationProcess.hpp"
+#include "map.hpp"
 
 void InitAnimations(AppState& appState)
 {
@@ -51,7 +52,7 @@ void UpdateEntityAnimation(Entity& entity, AppState& appState)
         if (entity.currentAnimation->currentFrame >= entity.currentAnimation->frameNumer) // Animation End
         {
             entity.currentAnimation->currentFrame = 0;
-            //if (entity.entityType == ENTITY_PLAYER) PlayerAnimationEnd(entity,appState);
+            if (entity.entityType == ENTITY_PLAYER) PlayerAnimationEnd(entity,appState);
         }
         entity.currentAnimation->frameRect.x = entity.currentAnimation->currentFrame*entity.currentAnimation->frameWidth;
     }
@@ -72,32 +73,18 @@ void SetAnimation(Entity& entity,AppState& appState)
 
 void SetPlayerAnimation(Entity& player, AppState& appState)
 {
+    CHARACTER_ANIMATION_ROW currentRow = player.characterAnimationRow;
     player.characterAnimationRow = static_cast<CHARACTER_ANIMATION_ROW>(
         static_cast<int>(player.entityState) * CHARACTER_DIRECTIONS +
         static_cast<int>(player.playerDirection)  
     );
     appState.characterAnimation->row = player.characterAnimationRow;
+    if (currentRow != appState.characterAnimation->row) appState.characterAnimation->currentFrame = 0;  // Resets the player animation if it is different
 }
-// This function is as of yet not needed
+// 
 void PlayerAnimationEnd(Entity& player, AppState& appState)
 {
-    switch (player.entityState)
-    {
-    case ENTITY_STATE_IDLE:
-        if (player.speedX == 0.0f && player.speedY == 0.0f) break;
-        player.characterAnimationRow = 
-            static_cast<CHARACTER_ANIMATION_ROW>(static_cast<int>(player.characterAnimationRow)+CHARACTER_DIRECTIONS);
-        break;
-    case ENTITY_STATE_WALKING:
-        if (player.speedX != 0.0f || player.speedY != 0.0f) break;
-        player.characterAnimationRow = 
-            static_cast<CHARACTER_ANIMATION_ROW>(static_cast<int>(player.characterAnimationRow)-CHARACTER_DIRECTIONS);
-        break;
-    
-    default:
-        break;
-    }
-
-    appState.characterAnimation->row = player.characterAnimationRow;
+    if (player.entityState == ENTITY_STATE_IDLE || player.entityState == ENTITY_STATE_WALKING || player.entityState == ENTITY_STATE_IDLE) return;
+    UpdateTile(appState.map,player);
 }
 
