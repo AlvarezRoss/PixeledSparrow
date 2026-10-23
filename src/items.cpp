@@ -18,11 +18,13 @@ void InitItems(AppState& appState)
             break;
         case ITEM_AXE:
             appState.gameItems[i].tileSetId = AXE_ID;
+            appState.gameItems[i].itemType = TOOL;
             appState.inventory.items[0] = appState.gameItems[i];
             appState.inventory.inventorySlots[0].item = &appState.inventory.items[0];
             break;
         case ITEM_HOE:
             appState.gameItems[i].tileSetId = HOE_ID;
+            appState.gameItems[i].itemType = TOOL;
             appState.inventory.items[2] = appState.gameItems[i];
             appState.inventory.inventorySlots[2].item = &appState.inventory.items[2];
             break;
@@ -34,6 +36,7 @@ void InitItems(AppState& appState)
             break;
         case ITEM_WATERCAN:
             appState.gameItems[i].tileSetId = WATERCAN_ID;
+            appState.gameItems[i].itemType = TOOL;
             appState.inventory.items[3] = appState.gameItems[i];
             appState.inventory.inventorySlots[3].item = &appState.inventory.items[3];
             break;
@@ -43,6 +46,11 @@ void InitItems(AppState& appState)
             appState.inventory.inventorySlots[4].item = &appState.inventory.items[4];
             appState.inventory.items[4].itemType = STRUCTURE;
             break;
+        case ITEM_CARROT_SEED:
+            appState.gameItems[i].tileSetId = CARROT_SEED;
+            appState.gameItems[i].itemType = SEED;
+            appState.inventory.items[5] = appState.gameItems[i];
+            appState.inventory.inventorySlots[5].item = &appState.inventory.items[5];
         default:
             break;
         }

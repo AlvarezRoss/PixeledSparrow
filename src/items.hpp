@@ -19,6 +19,10 @@
 #define FENCE_CENTRE 168
 
 
+#define CARROT_SEED 755
+#define CARROT_STAGE_1 819
+
+
 enum ITEM_TYPE
 {
     SEED,
@@ -33,7 +37,8 @@ enum ITEM
     ITEM_HOE,
     ITEM_WOOD,
     ITEM_STONE,
-    ITEM_FENCE
+    ITEM_FENCE,
+    ITEM_CARROT_SEED
 };
 
 struct Item
