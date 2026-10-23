@@ -23,7 +23,7 @@
 #define TILED_OFFSET 1
 #define MAP_PIXEL_COUNT 1600
 #define SPRITE_SIZE 16
-#define GAME_ITEMS 6
+#define GAME_ITEMS 7
 #define FRAME_TO_CHARACTER_OFFSET 8
 
 
@@ -219,5 +219,5 @@ void UpdateEntityState(AppState& appState, Entity& entity);
 void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
 void HandlePlayerState(AppState& appState, Entity& player);
-void HandlePlayerAction(Inventory& inventory, Entity& player);
+void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player);
 void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_Event& event);

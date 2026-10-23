@@ -198,11 +198,11 @@ void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_
 {
     if (event.key.repeat) return;
     if (inventory.itemInUse == nullptr) return;
-    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(appState.inventory, player);
+    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(appState.map, appState.inventory, player);
     else PlaceItem(appState.map, player, inventory);
 }
 
-void HandlePlayerAction(Inventory& inventory, Entity& player)
+void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player)
 {
     if (inventory.itemInUse == nullptr) return;
     if (inventory.open) return;
