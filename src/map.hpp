@@ -18,6 +18,10 @@
 #define WATER_FOURTH_FRAME 545
 #define WATER_STILL 470
 
+#define STONE_TILE 961
+#define FARM_SOIL 203
+#define FARM_SOIL_WATERED 267
+
 
 struct AppState;
 struct Map;
@@ -31,9 +35,12 @@ void UpdateTileIndex(AppState& appState, Entity& player);
 void SetTileId(Inventory& inventory, Map& map, Entity& player);
 void RenderItemInMap(AppState& appState, Entity& entity, Item& item);
 void PlaceStructure(Item& item, Map& map, Entity& player);
+void PlaceSeed(Item& item, Map& map, Entity& player);
 void PlaceItem (Map& map, Entity& player, Inventory& inventory);
 void ApplyTempColor(Map& map, Item& item, Entity& player);
 void HandleFencePlacement(Map& map, Item& item, int x, int y);
 bool IsFence(Map& map, int x, int y);
 bool IsTileOccupied(Map& map, int x, int y, int layer);
 void GetPlacementTarget(Map& map, Entity& player);
+void UpdateTile(Map& map, Entity& player);
+bool IsFarmTile(Map& map, int x, int y);

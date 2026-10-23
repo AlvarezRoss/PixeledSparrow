@@ -197,13 +197,14 @@ void RenderItemInMap(AppState& appState, Entity& entity, Item& item)
 void PlaceItem (Map& map, Entity& player, Inventory& inventory)
 {
     if (inventory.itemInUse == nullptr) return;
-
     switch (inventory.itemInUse->itemType)
     {
     case STRUCTURE:
         PlaceStructure(*inventory.itemInUse,map,player);
         break;
-    
+    case SEED:
+        PlaceSeed(*inventory.itemInUse,map,player);
+        break;
     default:
         break;
     }
@@ -216,6 +217,22 @@ void PlaceStructure(Item& item, Map& map, Entity& player)
     map.map[BUILDING_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = item.tileSetId + TILED_OFFSET;
     if (item.name == ITEM_FENCE) HandleFencePlacement(map,item,player.placementTarget.x,player.placementTarget.y);
     
+}
+
+void PlaceSeed(Item& item, Map& map, Entity& player)
+{
+    GetPlacementTarget(map,player);
+    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,DECORATION_LAYER)) return;
+    if (!IsFarmTile(map,player.placementTarget.x,player.placementTarget.y)) return;
+    switch (item.name)
+    {
+    case ITEM_CARROT_SEED:
+        map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = CARROT_STAGE_1 + TILED_OFFSET;
+        break;
+    
+    default:
+        break;
+    }
 }
 
 void ApplyTempColor(Map& map, Item& item, Entity& player)
@@ -347,6 +364,16 @@ bool IsTileOccupied(Map& map, int x, int y, int layer)
     return false;
 }
 
+bool IsFarmTile(Map& map, int x, int y)
+{
+    if (x < 0 || x > MAP_WIDTH) return false;
+    if (y < 0 || y > MAP_HEIGHT) return false;
+
+    if(map.map[GROUND_LAYER][y][x] == FARM_SOIL + TILED_OFFSET || map.map[GROUND_LAYER][y][x] == FARM_SOIL_WATERED + TILED_OFFSET) return true;
+
+    return false;
+}
+
 void GetPlacementTarget(Map& map, Entity& player)
 {
    switch (player.playerDirection)
@@ -369,6 +396,26 @@ void GetPlacementTarget(Map& map, Entity& player)
         break;
     default:
         player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y};
+        break;
+    }
+}
+// Function to be called form plyaer processing
+void UpdateTile(Map& map, Entity& player)
+{
+    GetPlacementTarget(map,player);
+    switch (player.entityState)
+    {
+    case ENTITY_STATE_FARMING:
+        if(map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] == STONE_TILE + TILED_OFFSET) return;
+        map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = FARM_SOIL + TILED_OFFSET;
+        break;
+    case ENTITY_STATE_WATERING:
+        if(map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] != FARM_SOIL + TILED_OFFSET) return;
+        map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = FARM_SOIL_WATERED + TILED_OFFSET;
+    case ENTITY_STATE_CHOPPING:
+        return; // TODO
+    default:
+        return;
         break;
     }
 }
