@@ -34,3 +34,6 @@ void PlaceStructure(Item& item, Map& map, Entity& player);
 void PlaceItem (Map& map, Entity& player, Inventory& inventory);
 void ApplyTempColor(Map& map, Item& item, Entity& player);
 void HandleFencePlacement(Map& map, Item& item, int x, int y);
+bool IsFence(Map& map, int x, int y);
+bool IsTileOccupied(Map& map, int x, int y, int layer);
+void GetPlacementTarget(Map& map, Entity& player);

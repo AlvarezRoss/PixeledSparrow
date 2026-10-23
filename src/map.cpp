@@ -197,6 +197,7 @@ void RenderItemInMap(AppState& appState, Entity& entity, Item& item)
 void PlaceItem (Map& map, Entity& player, Inventory& inventory)
 {
     if (inventory.itemInUse == nullptr) return;
+
     switch (inventory.itemInUse->itemType)
     {
     case STRUCTURE:
@@ -210,42 +211,16 @@ void PlaceItem (Map& map, Entity& player, Inventory& inventory)
 
 void PlaceStructure(Item& item, Map& map, Entity& player)
 {
-    int tilex = static_cast<int>(player.tilemapIndex.x);
-    int tiley = static_cast<int>(player.tilemapIndex.y);
-    switch (player.playerDirection)
-    {
-    case FRONT:
-        if (player.tilemapIndex.y + 1 > MAP_HEIGHT) return; 
-        map.map[BUILDING_LAYER][static_cast<int>(player.tilemapIndex.y + 1)][static_cast<int>(player.tilemapIndex.x)] = item.tileSetId + TILED_OFFSET;
-        ++tiley;
-        break;
-    case BACK:
-        if (player.tilemapIndex.y - 1 < 0) return;
-        map.map[BUILDING_LAYER][static_cast<int>(player.tilemapIndex.y - 1)][static_cast<int>(player.tilemapIndex.x)] = item.tileSetId + TILED_OFFSET;
-        --tiley;
-        break;
-    case LEFT:
-        if (player.tilemapIndex.x - 1 < 0) return;
-        map.map[BUILDING_LAYER][static_cast<int>(player.tilemapIndex.y)][static_cast<int>(player.tilemapIndex.x - 1)] = item.tileSetId + TILED_OFFSET;
-        --tilex;
-        break;
-    case RIGHT:
-        if (player.tilemapIndex.x + 1 > MAP_WIDTH);
-        map.map[BUILDING_LAYER][static_cast<int>(player.tilemapIndex.y)][static_cast<int>(player.tilemapIndex.x + 1)] = item.tileSetId + TILED_OFFSET;
-        ++tilex;
-        break;
-    default:
-        break;
-    }
-
-    if (item.name == ITEM_FENCE) HandleFencePlacement(map,item,tilex,tiley);
+    GetPlacementTarget(map,player);
+    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,BUILDING_LAYER)) return;
+    map.map[BUILDING_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = item.tileSetId + TILED_OFFSET;
+    if (item.name == ITEM_FENCE) HandleFencePlacement(map,item,player.placementTarget.x,player.placementTarget.y);
     
 }
 
 void ApplyTempColor(Map& map, Item& item, Entity& player)
 {
-    bool occupied = (map.map[BUILDING_LAYER][static_cast<int>(player.tilemapIndex.y + 1)][static_cast<int>(player.tilemapIndex.x)] == 0);
-    if (occupied) SDL_SetTextureColorMod(item.texture,34,139,34);
+    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,BUILDING_LAYER)) SDL_SetTextureColorMod(item.texture,34,139,34);
     else SDL_SetTextureColorMod(item.texture,34,139,34);
 }
 
@@ -256,11 +231,10 @@ void HandleFencePlacement(Map& map, Item& item, int x, int y)
     const int east = 7;
     const int west = 8;
     int tally = 0;
-    if (map.map[BUILDING_LAYER][y-1][x] != 0) tally += north;
-    if (map.map[BUILDING_LAYER][y+1][x] != 0) tally += south;
-    if (map.map[BUILDING_LAYER][y][x+1] != 0) tally += west;
-    if (map.map[BUILDING_LAYER][y][x-1] != 0) tally += east;
-
+    if (map.map[BUILDING_LAYER][y-1][x] != 0 && IsFence(map,x,y-1)) tally += north;
+    if (map.map[BUILDING_LAYER][y+1][x] != 0 && IsFence(map,x,y+1)) tally += south;
+    if (map.map[BUILDING_LAYER][y][x+1] != 0 && IsFence(map,x+1,y)) tally += west;
+    if (map.map[BUILDING_LAYER][y][x-1] != 0 && IsFence(map,x-1,y)) tally += east;
     switch (tally)
     {
     case 21 : 
@@ -331,4 +305,70 @@ void HandleFencePlacement(Map& map, Item& item, int x, int y)
         break;
     }
        
+}
+
+bool IsFence(Map& map, int x, int y)
+{
+    int tile = map.map[BUILDING_LAYER][y][x];
+
+    switch (tile - TILED_OFFSET)
+    {
+    case FENCE_BASE_ID:
+    case FENCE_CENTRE:
+    case FENCE_CORNER_LEFT_DOWN_ID:
+    case FENCE_CORNER_LEFT_UP_ID:
+    case FENCE_CORNER_RIGHT_DOWN_ID:
+    case FENCE_CORNER_RIGHT_UP_ID:
+    case FENCE_HORIZONTAL_ID:
+    case FENCE_DOWN:
+    case FENCE_LEFT:
+    case FENCE_UP:
+    case FENCE_RIGHT:
+    case FENCE_VERTICAL_ID:
+    case 0:
+        return true;
+        break;
+    
+    default:
+        return false;
+        break;
+    }
+
+    return false;
+}
+
+bool IsTileOccupied(Map& map, int x, int y, int layer)
+{
+    if (layer < 0 || layer > MAP_LAYERS) return true;
+    if (x < 0 || x > MAP_WIDTH) return true;
+    if (y < 0 || y > MAP_HEIGHT) return true;
+
+    if (map.map[layer][y][x] != 0) return true;
+    return false;
+}
+
+void GetPlacementTarget(Map& map, Entity& player)
+{
+   switch (player.playerDirection)
+    {
+    case FRONT:
+        if (player.tilemapIndex.y + 1 > MAP_HEIGHT) player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y};
+        else player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y + 1};
+        break;
+    case BACK:
+        if (player.tilemapIndex.y - 1 < 0) player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y};
+        else player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y - 1};
+        break;
+    case LEFT:
+        if (player.tilemapIndex.x - 1 < 0) player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y};
+        else player.placementTarget = {player.tilemapIndex.x - 1,player.tilemapIndex.y};
+        break;
+    case RIGHT:
+        if (player.tilemapIndex.x + 1 > MAP_WIDTH) player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y};
+        else player.placementTarget = {player.tilemapIndex.x + 1,player.tilemapIndex.y};
+        break;
+    default:
+        player.placementTarget = {player.tilemapIndex.x,player.tilemapIndex.y};
+        break;
+    }
 }
