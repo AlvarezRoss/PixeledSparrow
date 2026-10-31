@@ -21,6 +21,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
     {
         SDL_Log("Could not set framerate: %s",SDL_GetError());
     }
+    SDL_HideCursor();
     std::unique_ptr<AppState> state = std::make_unique<AppState>();
     state->graphics = std::make_unique<Graphics>();
     state->cowAnimations = std::make_unique<AnimalAnimations>();
@@ -48,12 +49,15 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
     InitEntities(*state);
     InitAnimations(*state);
     InitInventory(*state,*state->graphics.get());
-    if (InitMap(state->map,*state) != 0)
+    state->map = std::make_unique<Map>();
+    if (InitMap(*state->map,*state) != 0)
     {
         SDL_Log("Could not init map: %s",SDL_GetError());
         return SDL_APP_FAILURE;
-    } 
-    InitItems(*state);
+    }
+    SetInventoryItemsNone(state->inventory);
+    InitGameItems(*state);
+    AddInitialItems(*state);
     *appstate = state.release();
     return SDL_APP_CONTINUE;
 }
@@ -156,7 +160,7 @@ void Render(AppState& appState)
         }
         break;
     }
-
+    RenderCursor(*appState.renderer,appState.cursor,*appState.map,appState.camera);
     // Rendering //
     SDL_RenderPresent(appState.renderer); // Draws
 }
