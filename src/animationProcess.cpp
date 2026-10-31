@@ -85,6 +85,6 @@ void SetPlayerAnimation(Entity& player, AppState& appState)
 void PlayerAnimationEnd(Entity& player, AppState& appState)
 {
     if (player.entityState == ENTITY_STATE_IDLE || player.entityState == ENTITY_STATE_WALKING || player.entityState == ENTITY_STATE_IDLE) return;
-    UpdateTile(appState.map,player);
+    UpdateTile(*appState.map,player);
 }
 
