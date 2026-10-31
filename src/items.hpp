@@ -27,7 +27,8 @@ enum ITEM_TYPE
 {
     SEED,
     TOOL,
-    STRUCTURE
+    STRUCTURE,
+    MATERIAL,
 };
 
 enum ITEM
@@ -38,7 +39,9 @@ enum ITEM
     ITEM_WOOD,
     ITEM_STONE,
     ITEM_FENCE,
-    ITEM_CARROT_SEED
+    ITEM_CARROT_SEED,
+    ITEM_TOTAL,
+    ITEM_NONE
 };
 
 struct Item
@@ -53,4 +56,6 @@ struct Item
 
 struct AppState;
 
-void InitItems(AppState& appState);
+void InitItem(AppState& appState, Item& item, ITEM itemName);
+void InitGameItems(AppState& appState);
+void SetItemData(Item& item,ITEM itemName, AppState& appState);

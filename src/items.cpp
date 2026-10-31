@@ -1,60 +1,70 @@
 #include "helper.hpp"
 #include "items.hpp"
+#include "map.hpp"
 
 
-void InitItems(AppState& appState)
+void InitItem(AppState& appState, Item& item, ITEM itemName)
 {
-    for (int i = 0 ; i < GAME_ITEMS ; i++)
+    switch (itemName)
     {
-        appState.gameItems[i].count = 0;
-        appState.gameItems[i].hp = 0;
-        appState.gameItems[i].name = static_cast<ITEM>(i);
-        appState.gameItems[i].texture = appState.graphics->mapTexture;
-        // Giving the player three item types just for testing
-        switch (appState.gameItems[i].name)
+    case ITEM_AXE:
+        appState.gameItems[appState.currentItemIndex].itemType = TOOL;
+        appState.gameItems[appState.currentItemIndex].tileSetId = AXE_ID;
+        break;
+    case ITEM_CARROT_SEED:
+        appState.gameItems[appState.currentItemIndex].itemType = SEED;
+        appState.gameItems[appState.currentItemIndex].tileSetId = CARROT_SEED;
+        break;
+    case ITEM_FENCE:
+        appState.gameItems[appState.currentItemIndex].itemType = STRUCTURE;
+        appState.gameItems[appState.currentItemIndex].tileSetId = FENCE_BASE_ID;
+        break;
+    case ITEM_HOE:
+        appState.gameItems[appState.currentItemIndex].itemType = TOOL;
+        appState.gameItems[appState.currentItemIndex].tileSetId = HOE_ID;
+        break;
+    case ITEM_WATERCAN:
+        appState.gameItems[appState.currentItemIndex].itemType = TOOL;
+        appState.gameItems[appState.currentItemIndex].tileSetId = WATERCAN_ID;
+        break;
+    case ITEM_STONE:
+        appState.gameItems[appState.currentItemIndex].itemType = MATERIAL;
+        appState.gameItems[appState.currentItemIndex].tileSetId = STONE_ID;
+        break;
+    case ITEM_WOOD:
+        appState.gameItems[appState.currentItemIndex].itemType = MATERIAL;
+        appState.gameItems[appState.currentItemIndex].tileSetId = WOOD_ID;
+        break;
+    default:
+        return;
+    }
+
+    appState.gameItems[appState.currentItemIndex].name = itemName;
+    appState.gameItems[appState.currentItemIndex].texture = appState.graphics->mapTexture;
+    appState.currentItemIndex ++;
+}
+// To be called from app init function
+void InitGameItems(AppState& appState)
+{
+    int arrayLen = appState.gameItems.size();
+    for(int i = 0; i < arrayLen; i++)
+    {
+        if (i == GAME_ITEMS) return;
+        InitItem(appState,appState.gameItems[i],static_cast<ITEM>(i));
+    }
+}
+// This function is used to set the data from the game items array to an item that will be added to the player's invetory
+void SetItemData(Item& item, ITEM itemName, AppState& appState)
+{
+    item.texture = appState.graphics->mapTexture;
+    item.name = itemName;
+    for (int i = 0; i < appState.currentItemIndex; ++i)
+    {
+        if (appState.gameItems[i].name == itemName)
         {
-        case ITEM_STONE:
-            appState.gameItems[i].tileSetId = STONE_ID;
-            break;
-        case ITEM_AXE:
-            appState.gameItems[i].tileSetId = AXE_ID;
-            appState.gameItems[i].itemType = TOOL;
-            appState.inventory.items[0] = appState.gameItems[i];
-            appState.inventory.inventorySlots[0].item = &appState.inventory.items[0];
-            break;
-        case ITEM_HOE:
-            appState.gameItems[i].tileSetId = HOE_ID;
-            appState.gameItems[i].itemType = TOOL;
-            appState.inventory.items[2] = appState.gameItems[i];
-            appState.inventory.inventorySlots[2].item = &appState.inventory.items[2];
-            break;
-        case ITEM_WOOD:
-            appState.gameItems[i].tileSetId = WOOD_ID;
-            appState.inventory.items[1] = appState.gameItems[i];
-            appState.inventory.items[1].count = 5; 
-            appState.inventory.inventorySlots[1].item = &appState.inventory.items[1];
-            break;
-        case ITEM_WATERCAN:
-            appState.gameItems[i].tileSetId = WATERCAN_ID;
-            appState.gameItems[i].itemType = TOOL;
-            appState.inventory.items[3] = appState.gameItems[i];
-            appState.inventory.inventorySlots[3].item = &appState.inventory.items[3];
-            break;
-        case ITEM_FENCE:
-            appState.gameItems[i].tileSetId = FENCE_BASE_ID;
-            appState.inventory.items[4] = appState.gameItems[i];
-            appState.inventory.inventorySlots[4].item = &appState.inventory.items[4];
-            appState.inventory.items[4].itemType = STRUCTURE;
-            break;
-        case ITEM_CARROT_SEED:
-            appState.gameItems[i].tileSetId = CARROT_SEED;
-            appState.gameItems[i].itemType = SEED;
-            appState.inventory.items[5] = appState.gameItems[i];
-            appState.inventory.inventorySlots[5].item = &appState.inventory.items[5];
-        default:
-            break;
+            item.tileSetId = appState.gameItems[i].tileSetId;
+            item.itemType = appState.gameItems[i].itemType;
+            
         }
     }
-    
-
 }
