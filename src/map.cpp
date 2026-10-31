@@ -2,12 +2,11 @@
 #include "map.hpp"
 #include <cmath>
 
-
 void DrawMapGrid(AppState& appState)
 {
     SDL_SetRenderDrawColor(appState.renderer,100,100,100,0);
-    SDL_GetMouseState(&appState.mouseX,&appState.mouseY);
-    SDL_FPoint mousePoint = {appState.mouseX,appState.mouseY};
+    SDL_GetMouseState(&appState.cursor.position.x,&appState.cursor.position.y);
+    SDL_FPoint mousePoint = {appState.cursor.position.x,appState.cursor.position.y};
     for (int x = 0; x < MAP_WIDTH; x++)
     {
         for (int y = 0; y < MAP_HEIGHT; y++)
@@ -66,8 +65,8 @@ int InitMapLayers(std::string& xml, AppState& appState)
         int x = 0;
         while (std::getline(stream,value,','))
         {
-            appState.map.map[layer][y][x] = std::atoi(value.c_str());
-            if (layer == WATER_LAYER && appState.map.xRiverIndex == 0 && appState.map.map[layer][y][x] == WATER_FIRST_FRAME + TILED_OFFSET) appState.map.xRiverIndex = x; // finds where the river in the map begins
+            appState.map->map[layer][y][x] = std::atoi(value.c_str());
+            if (layer == WATER_LAYER && appState.map->xRiverIndex == 0 && appState.map->map[layer][y][x] == WATER_FIRST_FRAME + TILED_OFFSET) appState.map->xRiverIndex = x; // finds where the river in the map begins
             ++x;
             if (x == MAP_WIDTH)
             {
@@ -76,7 +75,36 @@ int InitMapLayers(std::string& xml, AppState& appState)
             }
         }        
     }
+    InitMapObjects(*appState.map);
     return 0;
+}
+
+void InitMapObjects(Map& map)
+{
+    for (int y = 0 ; y < MAP_HEIGHT; y++)
+    {
+        for (int x = 0; x < MAP_WIDTH; x++)
+        {
+            if (map.map[DECORATION_LAYER][y][x] == 0) continue;
+            SetMapObject(map,x,y,static_cast<int>(DECORATION_LAYER));        
+        }
+    }
+}
+
+void SetMapObject(Map& map, int x, int y, int layer)
+{
+    if (map.objectArrayCount >= map.mapObjects.size()) return;
+    switch (map.map[layer][y][x])
+    {
+    case SMALL_TREE_BASE_TILE:
+        map.mapObjects[map.objectArrayCount].type = TREE_SMALL;
+        map.mapObjects[map.objectArrayCount].mapIndex = {static_cast<float>(x),static_cast<float>(y)};
+        ++map.objectArrayCount;
+        break;
+    
+    default:
+        break;
+    }
 }
 
 void DrawMap(AppState& appState)
@@ -87,11 +115,11 @@ void DrawMap(AppState& appState)
         {
             for (int x = 0; x < MAP_WIDTH ; x++)
             {
-                int tile = appState.map.map[layer][y][x];
+                int tile = appState.map->map[layer][y][x];
                 if (tile == 0) continue;
                 tile -= TILED_OFFSET;
-                float tileX = tile % appState.map.numberOfColumns;
-                float tileY = tile / appState.map.numberOfColumns;
+                float tileX = tile % appState.map->numberOfColumns;
+                float tileY = tile / appState.map->numberOfColumns;
                 
                 const SDL_FRect src = {
                     tileX * TILE_SIZE,
@@ -112,7 +140,7 @@ void DrawMap(AppState& appState)
                     TILE_SIZE
                 };
 
-                SDL_RenderTexture(appState.renderer,appState.map.mapTexture,&src,&dest);
+                SDL_RenderTexture(appState.renderer,appState.map->mapTexture,&src,&dest);
             }
         }
     }
@@ -122,21 +150,21 @@ void AnimateWater(AppState& appState)
 {
     const int riverWidth = 4;
     const int animationWait = 60;
-    appState.map.frameCounter++;
-    if (appState.map.frameCounter < animationWait/appState.map.waterAnimationSpeed) return;
+    appState.map->frameCounter++;
+    if (appState.map->frameCounter < animationWait/appState.map->waterAnimationSpeed) return;
     for (int y = 0; y < MAP_HEIGHT; y++)
     {
-        for (int x = appState.map.xRiverIndex ; x < appState.map.xRiverIndex + riverWidth; x++)
+        for (int x = appState.map->xRiverIndex ; x < appState.map->xRiverIndex + riverWidth; x++)
         {
-            if (appState.map.map[WATER_LAYER][y][x] == WATER_STILL + TILED_OFFSET || appState.map.map[WATER_LAYER][y][x] >= WATER_FOURTH_FRAME + TILED_OFFSET)
+            if (appState.map->map[WATER_LAYER][y][x] == WATER_STILL + TILED_OFFSET || appState.map->map[WATER_LAYER][y][x] >= WATER_FOURTH_FRAME + TILED_OFFSET)
             {
-                appState.map.map[WATER_LAYER][y][x] = WATER_FIRST_FRAME + TILED_OFFSET;
+                appState.map->map[WATER_LAYER][y][x] = WATER_FIRST_FRAME + TILED_OFFSET;
                 continue;
             }
-            appState.map.map[WATER_LAYER][y][x]++;
+            appState.map->map[WATER_LAYER][y][x]++;
         }
     }
-    appState.map.frameCounter = 0;    
+    appState.map->frameCounter = 0;    
 }
 
 void UpdateTileIndex(AppState& appState, Entity& player)
@@ -150,8 +178,8 @@ void RenderItemInMap(AppState& appState, Entity& entity, Item& item)
 {
     SDL_SetTextureAlphaMod(item.texture,128);
     SDL_FRect src = {
-        static_cast<float>(item.tileSetId % appState.map.numberOfColumns * TILE_SIZE),
-        static_cast<float>(item.tileSetId / appState.map.numberOfColumns * TILE_SIZE),
+        static_cast<float>(item.tileSetId % appState.map->numberOfColumns * TILE_SIZE),
+        static_cast<float>(item.tileSetId / appState.map->numberOfColumns * TILE_SIZE),
         TILE_SIZE,
         TILE_SIZE
     };
@@ -177,7 +205,7 @@ void RenderItemInMap(AppState& appState, Entity& entity, Item& item)
     default:
         break;
     }
-    ApplyTempColor(appState.map,item,entity);
+    ApplyTempColor(*appState.map,item,entity);
     float drawX;
     float drawY;
     WorldToScreen(appState.camera,destPosition.x,destPosition.y,drawX,drawY);
@@ -412,10 +440,24 @@ void UpdateTile(Map& map, Entity& player)
     case ENTITY_STATE_WATERING:
         if(map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] != FARM_SOIL + TILED_OFFSET) return;
         map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = FARM_SOIL_WATERED + TILED_OFFSET;
+        break;
     case ENTITY_STATE_CHOPPING:
-        return; // TODO
+        HandleChop(map,player);
+        break;
     default:
         return;
+        break;
+    }
+}
+
+void HandleChop(Map& map, Entity& player)
+{
+    switch (map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)])
+    {
+    case SMALL_TREE_BASE_TILE + TILED_OFFSET:
+        map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = SMALL_TREE_STUMP_TILE + TILED_OFFSET;
+        break;
+    default:
         break;
     }
 }
