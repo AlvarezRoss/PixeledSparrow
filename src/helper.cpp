@@ -1,3 +1,4 @@
+
 #include "helper.hpp"
 #include "map.hpp"
 
@@ -45,6 +46,8 @@ int InitGraphics(AppState& appState)
     if (appState.graphics->inventorySlot == nullptr) return -1;
     appState.graphics->mapTexture = IMG_LoadTexture(appState.renderer,"assets/spr_tileset_sunnysideworld_16px.png");
     if (appState.graphics->inventorySlot == nullptr) return -1; 
+
+    appState.cursor.texture = appState.graphics->mapTexture; // Cursor is in map texture - Shared resource // Could use shared ptr rather than raw pointers
     return 0;
 }
 
@@ -95,6 +98,20 @@ void RenderEntity(Entity& entity, SDL_Renderer& renderer, float drawX, float dra
         SDL_Log("Could not render entity: %s",SDL_GetError());
     }
     return;
+}
+
+void RenderCursor(SDL_Renderer& renderer, Cursor& cursor, Map& map, Camera& camera)
+{
+    float tileX = CURSOR_TILE % map.numberOfColumns;
+    float tileY = CURSOR_TILE / map.numberOfColumns;
+    
+    SDL_FRect src = {tileX * TILE_SIZE,tileY * TILE_SIZE,TILE_SIZE,TILE_SIZE};
+    SDL_GetMouseState(&cursor.position.x,&cursor.position.y);
+    SDL_FRect dest = {cursor.position.x, cursor.position.y,TILE_SIZE,TILE_SIZE};
+    if (!SDL_RenderTexture(&renderer,cursor.texture,&src,&dest))
+    {
+        SDL_Log("Could not render cursor: %s",SDL_GetError());
+    }
 }
 
 void PlayerMovement(Entity& player, AppState& appState)
@@ -198,8 +215,8 @@ void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_
 {
     if (event.key.repeat) return;
     if (inventory.itemInUse == nullptr) return;
-    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(appState.map, appState.inventory, player);
-    else PlaceItem(appState.map, player, inventory);
+    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(*appState.map, appState.inventory, player);
+    else PlaceItem(*appState.map, player, inventory);
 }
 
 void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player)

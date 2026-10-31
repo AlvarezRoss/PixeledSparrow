@@ -12,19 +12,10 @@
 #include "items.hpp"
 
 #define MAX_ENTITIES 255
-#define MAP_LAYERS 5
-#define MAP_WIDTH 100
-#define MAP_HEIGHT 100
-#define TILE_MAP_WIDTH 1024
-#define TILE_MAP_HEIGHT 1024
-#define TILE_SIZE 16
-#define WORLD_WIDTH (MAP_WIDTH*TILE_SIZE)
-#define WORLD_HEIGHT (MAP_HEIGHT*TILE_SIZE)
-#define TILED_OFFSET 1
-#define MAP_PIXEL_COUNT 1600
 #define SPRITE_SIZE 16
 #define GAME_ITEMS 7
 #define FRAME_TO_CHARACTER_OFFSET 8
+#define CURSOR_TILE 2982
 
 
 enum ENTITY_TYPE
@@ -123,6 +114,7 @@ struct Graphics
     SDL_Texture *selectedUi;
     SDL_Texture *inventorySlot;
     SDL_Texture *mapTexture;
+    SDL_Texture *cursorTexture;
 };
 struct Animation
 {
@@ -138,23 +130,19 @@ struct Animation
     ANIMATION_STATE state;
 };
 
-struct Map
-{
-    int map[MAP_LAYERS][MAP_HEIGHT][MAP_WIDTH];
-    const std::string path = "assets/Tiled/PixeledSparrow.tmx";
-    const std::string pngPath = "assets/spr_tileset_sunnysideworld_16px.png";
-    int numberOfColumns = TILE_MAP_WIDTH/TILE_SIZE;
-    SDL_Texture *mapTexture = nullptr;
-    int xRiverIndex = 0; // used to find where the big river in the map starts
-    int frameCounter = 0; // Used to control water animation
-    int waterAnimationSpeed = 10; // Used to control water animation speed change
-};
+struct Map; // Forward Declaration
 
 struct AnimalAnimations
 {
     Animation idle;
     Animation walk;
     Animation eat;
+};
+
+struct Cursor
+{
+    Vector2 position;
+    SDL_Texture *texture; // Non-Owning -- see graphics struct
 };
 struct Entity
 {
@@ -191,17 +179,17 @@ struct AppState
     std::unique_ptr<Animation> characterAnimation;
     std::array<Entity,MAX_ENTITIES> entities{};
     std::array<Item,GAME_ITEMS> gameItems{};
+    int currentItemIndex = 0;
     SDL_Event* event;
-    Map map;
+    std::unique_ptr<Map> map;
     Camera camera;
-    Inventory inventory;
+    Cursor cursor;
+    Inventory inventory; // This should probable be moved to the player
     int playerIndex;
     int windowHeight;
     int windowWidth;
     int selectedItemUiIndex;
     Uint8 mouseButton;
-    float mouseX;
-    float mouseY;
     float uiX;
     float uiY;
 };
@@ -221,3 +209,4 @@ void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float
 void HandlePlayerState(AppState& appState, Entity& player);
 void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player);
 void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_Event& event);
+void RenderCursor(SDL_Renderer& renderer, Cursor& cursor, Map& map, Camera& camera);
