@@ -64,7 +64,6 @@ void SetItemData(Item& item, ITEM itemName, AppState& appState)
         {
             item.tileSetId = appState.gameItems[i].tileSetId;
             item.itemType = appState.gameItems[i].itemType;
-            
         }
     }
 }
