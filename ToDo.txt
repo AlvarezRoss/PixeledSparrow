@@ -3,6 +3,11 @@
 - Add Camera Boundries - Done.
 - Make the inventory move when on map edges - Done. 
 - Running Water - Done.
+- Tile sanpping for fences - Done
+- Add Item count to inventory - Done
+- Implement farming - 50%
+- Change Cursor - Done.
+- Harvest Resources.
 - Handle collisions.
 - Update tiles based on player action.
 - Implement animals.
