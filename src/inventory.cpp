@@ -9,6 +9,7 @@ void InitInventory(AppState& appState, Graphics& graphics)
     appState.inventory.inventoryTexture = graphics.inventoryUi;
     appState.inventory.itemSlotTexture = graphics.inventorySlot;
     appState.inventory.open = false;
+    appState.inventory.textFont = TTF_OpenFont("build/Roboto-Medium.ttf",12.0f);
 }
 
 void RenderItemSelector(AppState& appState)
@@ -60,7 +61,7 @@ void RenderItemSlots(AppState& appState, Inventory& inventory)
             SDL_Log("Cannot render Item Selection Slots number %d : %s",count,SDL_GetError());
         }
         if (inventory.itemSelectorSlots[count].item == nullptr) continue;
-        RenderInventoryItems(appState,inventory.itemSelectorSlots[count].dest,inventory.itemSelectorSlots[count].item);
+        RenderInventoryItems(appState,inventory.itemSelectorSlots[count].dest,inventory.itemSelectorSlots[count].item, inventory.itemSelectorSlots[count]);
     }
     return;
 }
@@ -95,7 +96,7 @@ void RenderInventoryWindow(AppState& appState, Inventory& inventory)
             SDL_RenderTexture(appState.renderer,appState.graphics->inventorySlot,&src,&inventory.inventorySlots[slotCounter].dest);
             
             if (inventory.inventorySlots[slotCounter].item != nullptr)
-                RenderInventoryItems(appState,inventory.inventorySlots[slotCounter].dest,inventory.inventorySlots[slotCounter].item);
+                RenderInventoryItems(appState,inventory.inventorySlots[slotCounter].dest,inventory.inventorySlots[slotCounter].item,inventory.inventorySlots[slotCounter]);
             ++slotCounter;
         }
     }
@@ -123,7 +124,7 @@ void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event
     {
         if (SDL_PointInRectFloat(&mousePoint,&inventory.inventorySlots[i].dest))
         {
-            HandleInventorySelection(inventory,inventory.inventorySlots[i]);
+            HandleInventorySelection(inventory,inventory.inventorySlots[i],*appState.renderer);
         }
     }
 
@@ -132,12 +133,12 @@ void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event
     {
         if (SDL_PointInRectFloat(&mousePoint,&inventory.itemSelectorSlots[i].dest))
         {
-            HandleInventorySelection(inventory,inventory.itemSelectorSlots[i]);
+            HandleInventorySelection(inventory,inventory.itemSelectorSlots[i],*appState.renderer);
         }
     }
 }
 
-void HandleInventorySelection(Inventory& inventory, InventorySlot& slot)
+void HandleInventorySelection(Inventory& inventory, InventorySlot& slot, SDL_Renderer& renderer)
 {
     if (inventory.selectedItem == nullptr && slot.item == nullptr) return;
     if (inventory.selectedItem == nullptr)
@@ -150,8 +151,9 @@ void HandleInventorySelection(Inventory& inventory, InventorySlot& slot)
     inventory.srcSlot->item = nullptr;
     slot.item = inventory.selectedItem;
     inventory.selectedItem = nullptr;
+    UpdateItemSlotText(renderer,inventory,slot,*slot.item);
 }
-void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item)
+void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item, InventorySlot& itemSlot)
 {
     if(item == nullptr) return;
     float tileX = item->tileSetId % appState.map->numberOfColumns;
@@ -161,6 +163,19 @@ void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* it
     if (!SDL_RenderTexture(appState.renderer,item->texture,&src,&drawRectangle))
     {
         SDL_Log("Could not render item texture: %s \n",SDL_GetError());
+    }
+    if (item->count > 1)
+    {
+        SDL_FRect textRectangle = {
+            drawRectangle.x + itemSlot.textTexture->w/2.0f,
+            drawRectangle.y + itemSlot.textTexture->h/2.0f,
+            (float)itemSlot.textSurface->w,
+            (float)itemSlot.textSurface->h
+        };
+        if (!SDL_RenderTexture(appState.renderer,itemSlot.textTexture,nullptr,&textRectangle))
+        {
+            SDL_Log("Could not render itemSlot Text");
+        }
     }
     return;
 }
@@ -197,12 +212,22 @@ void AddItemToInventory(ITEM item, int quantity, Inventory& inventory,AppState& 
     {
         if (inventory.items[i].name == item) 
         {
+            InventorySlot* itemSlot = GetInventorySlot(inventory,&inventory.items[i]);
+            if (itemSlot == nullptr) return;
             inventory.items[i].count += quantity;
+            UpdateItemSlotText(*appState.renderer,inventory,*itemSlot,inventory.items[i]);
             return;
         }
     }
+
+    int inventorySize = appState.inventory.inventorySlots.size();
+    if (appState.inventory.currentSlot >= inventorySize) return;
+
     SetItemData(appState.inventory.items[appState.inventory.currentSlot],item,appState);
     appState.inventory.inventorySlots[appState.inventory.currentSlot].item = &appState.inventory.items[appState.inventory.currentSlot];
+    // TESTING THE TEXT RENDERING REMBER TO REMOVE!!!!!
+    appState.inventory.inventorySlots[appState.inventory.currentSlot].item->count = 3;
+    UpdateItemSlotText(*appState.renderer,inventory,appState.inventory.inventorySlots[appState.inventory.currentSlot],appState.inventory.items[appState.inventory.currentSlot]);
     appState.inventory.currentSlot ++;
 }
 
@@ -213,4 +238,36 @@ void SetInventoryItemsNone(Inventory& inventory)
     {
         inventory.items[i].name = ITEM_NONE;
     }
+}
+
+void UpdateItemSlotText(SDL_Renderer& renderer, Inventory& inventory, InventorySlot& slot, Item& item)
+{
+    slot.text = "x"+ std::to_string(item.count);
+    if (slot.textSurface != nullptr)
+    {
+        SDL_DestroySurface(slot.textSurface);
+    } 
+    slot.textSurface = TTF_RenderText_Blended(inventory.textFont,slot.text.c_str(),slot.text.length(),SDL_Color{0,0,0,255});
+    if (slot.textTexture != nullptr)
+    {
+        SDL_DestroyTexture(slot.textTexture);
+    } 
+    slot.textTexture = SDL_CreateTextureFromSurface(&renderer,slot.textSurface);
+}
+
+// Function return the item slot ptr to enable updating its text surface and texture
+InventorySlot* GetInventorySlot(Inventory& inventory, Item* item)
+{
+    if (item == nullptr) return nullptr;
+    int inventorySlotCount = inventory.inventorySlots.size();
+    int itemSelectorCount = inventory.itemSelectorSlots.size();
+    for (int i = 0 ; i < inventorySlotCount; i++)
+    {
+        if (inventory.inventorySlots[i].item == item) return &inventory.inventorySlots[i]; 
+    }
+    for (int i = 0 ; i < itemSelectorCount ; i++)
+    {
+        if (inventory.itemSelectorSlots[i].item == item) return &inventory.itemSelectorSlots[i];
+    }
+    return nullptr;
 }

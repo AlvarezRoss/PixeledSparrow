@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include "items.hpp"
 
 #define ITEM_SLOT_X 2
@@ -29,6 +30,9 @@ enum ItemSlotState
 struct InventorySlot
 {
     Item *item = nullptr;
+    SDL_Surface* textSurface = nullptr;
+    SDL_Texture* textTexture = nullptr;
+    std::string text;
     float worldX;
     float worldY;
     float drawX;
@@ -46,6 +50,7 @@ struct Inventory
     SDL_Texture *inventoryTexture = nullptr;
     SDL_Texture *itemSelectionTexture = nullptr;
     SDL_Texture * itemSlotTexture = nullptr;
+    TTF_Font* textFont = nullptr;
     bool open = false;
     int selectedItemIndex = 0; // Used in the selector bar
     Item *selectedItem = nullptr;
@@ -67,9 +72,11 @@ void RenderItemSlots(AppState& appState, Inventory& inventory);
 void RenderInventoryWindow(AppState& appState, Inventory& inventory);
 void UpdateInventoryState(AppState& appState, SDL_Event& event);
 void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event);
-void HandleInventorySelection(Inventory& inventory, InventorySlot& slot);
-void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item);
+void HandleInventorySelection(Inventory& inventory, InventorySlot& slot, SDL_Renderer& renderer);
+void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item, InventorySlot& itemSlot);
 void UpdateItemSelector(Inventory& inventory);
 void AddItemToInventory(ITEM item, int quantity, Inventory& inventory, AppState& appState);
 void AddInitialItems(AppState& appState);
 void SetInventoryItemsNone(Inventory& inventory);
+void UpdateItemSlotText(SDL_Renderer& renderer, Inventory& inventory, InventorySlot& slot, Item& item);
+InventorySlot* GetInventorySlot(Inventory& inventory, Item* item);
