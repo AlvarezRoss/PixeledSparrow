@@ -1,5 +1,6 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include "helper.hpp"
 #include "animationProcess.hpp"
 #include "map.hpp"
@@ -15,6 +16,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         SDL_Log("Could not init SDL %s",SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    if (!TTF_Init())
+    {
+        SDL_Log("Could not init TTF: %s",SDL_GetError());
         return SDL_APP_FAILURE;
     }
     if (!SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE,"60"))
@@ -125,6 +131,9 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result)
     if (state->graphics->selectedUi != nullptr) SDL_DestroyTexture(state->graphics->selectedUi);
     if (state->renderer != nullptr) SDL_DestroyRenderer(state->renderer);
     if (state->window != nullptr) SDL_DestroyWindow(state->window);
+    if (state->inventory.textFont != nullptr) TTF_CloseFont(state->inventory.textFont);
+
+    TTF_Quit();
 
 }
 
