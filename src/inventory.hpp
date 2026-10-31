@@ -52,6 +52,7 @@ struct Inventory
     Item *itemInUse = nullptr;
     InventorySlot *srcSlot = nullptr;
     InventorySlot *destSlot = nullptr;
+    int currentSlot = 0;
 };
 
 // Forward declaration
@@ -69,3 +70,6 @@ void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event
 void HandleInventorySelection(Inventory& inventory, InventorySlot& slot);
 void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item);
 void UpdateItemSelector(Inventory& inventory);
+void AddItemToInventory(ITEM item, int quantity, Inventory& inventory, AppState& appState);
+void AddInitialItems(AppState& appState);
+void SetInventoryItemsNone(Inventory& inventory);

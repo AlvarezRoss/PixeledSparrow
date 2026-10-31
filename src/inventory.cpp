@@ -1,4 +1,5 @@
 
+#include "map.hpp"
 #include "helper.hpp"
 #include "inventory.hpp"
 
@@ -117,7 +118,7 @@ void ProcessInventory(AppState& appState, Inventory& inventory, SDL_Event& event
     if (appState.mouseButton != SDL_BUTTON_LMASK) return;
 
     const int inventorySize = inventory.inventorySlots.size();
-    const SDL_FPoint mousePoint = {appState.mouseX,appState.mouseY}; 
+    const SDL_FPoint mousePoint = {appState.cursor.position.x,appState.cursor.position.y}; 
     for (int i = 0; i < inventorySize ; i++)
     {
         if (SDL_PointInRectFloat(&mousePoint,&inventory.inventorySlots[i].dest))
@@ -153,8 +154,8 @@ void HandleInventorySelection(Inventory& inventory, InventorySlot& slot)
 void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item)
 {
     if(item == nullptr) return;
-    float tileX = item->tileSetId % appState.map.numberOfColumns;
-    float tileY = item->tileSetId / appState.map.numberOfColumns;
+    float tileX = item->tileSetId % appState.map->numberOfColumns;
+    float tileY = item->tileSetId / appState.map->numberOfColumns;
     SDL_FRect src = {tileX * TILE_SIZE,tileY* TILE_SIZE,TILE_SIZE,TILE_SIZE};
     
     if (!SDL_RenderTexture(appState.renderer,item->texture,&src,&drawRectangle))
@@ -180,4 +181,36 @@ void UpdateItemSelector(Inventory& inventory)
     // This can set the itemInUse as a nullptr. Ensure to check if not nullptr before doing anything with it
     inventory.itemInUse = inventory.itemSelectorSlots[inventory.selectedItemIndex].item; 
     
+}
+
+void AddInitialItems(AppState& appState)
+{
+    for (int i = 0; i < GAME_ITEMS ; i++)
+    {
+        AddItemToInventory(static_cast<ITEM>(i),1,appState.inventory,appState);
+    }
+}
+void AddItemToInventory(ITEM item, int quantity, Inventory& inventory,AppState& appState)
+{
+    int invetorySize = inventory.items.size();
+    for (int i = 0; i < invetorySize ; i++)
+    {
+        if (inventory.items[i].name == item) 
+        {
+            inventory.items[i].count += quantity;
+            return;
+        }
+    }
+    SetItemData(appState.inventory.items[appState.inventory.currentSlot],item,appState);
+    appState.inventory.inventorySlots[appState.inventory.currentSlot].item = &appState.inventory.items[appState.inventory.currentSlot];
+    appState.inventory.currentSlot ++;
+}
+
+void SetInventoryItemsNone(Inventory& inventory)
+{
+    int size = inventory.items.size();
+    for (int i = 0; i < size; i++)
+    {
+        inventory.items[i].name = ITEM_NONE;
+    }
 }
