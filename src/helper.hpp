@@ -155,6 +155,7 @@ struct Entity
     Vector2 tilemapIndex;
     Vector2 placementTarget;
     SDL_FRect hitBox;
+    Inventory* inventory = nullptr; // non-owning -- should probably change it
     float speedX;
     float speedY;
     float x;
@@ -193,9 +194,6 @@ struct AppState
     float uiX;
     float uiY;
 };
-
-void HandleAppEvent(AppState& gameState);
-void CleanUp(SDL_Window* window);
 int InitGraphics(AppState& appState);
 void SetEntities(AppState& appState);
 void RenderEntity(Entity& entity, SDL_Renderer& renderer, float drawX, float drawY);
@@ -207,6 +205,7 @@ void UpdateEntityState(AppState& appState, Entity& entity);
 void UpdateCameraPosition(Entity& player, Camera& camera);
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY);
 void HandlePlayerState(AppState& appState, Entity& player);
-void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player);
-void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_Event& event);
+void HandlePlayerAction(Inventory& inventory, Entity& player);
+void InputHandler(AppState& appState, Entity& player, Inventory& inventory);
 void RenderCursor(SDL_Renderer& renderer, Cursor& cursor, Map& map, Camera& camera);
+void PlaceItem (Map& map, Entity& player, Inventory& inventory);

@@ -2,31 +2,6 @@
 #include "helper.hpp"
 #include "map.hpp"
 
-void CleanUp(SDL_Window* window)
-{
-    if (window != NULL) SDL_DestroyWindow(window);
-    SDL_Quit();
-}
-
-void HandleAppEvent(AppState& gameState)
-{
-    SDL_Event event = {0};
-    while(SDL_PollEvent(&event))
-    {
-        switch (event.type)
-        {
-        case SDL_EVENT_QUIT:
-            gameState.state = GAME_STATE_QUIT;
-            break;
-        
-        default:
-            break;
-        }        
-    }
-}
-
-
-
 // The program will quit if this function reutnrs -1
 int InitGraphics(AppState& appState)
 {
@@ -74,6 +49,7 @@ void InitEntities(AppState& appState)
             appState.entities[i].entityTexture = appState.graphics->playerTexture;
             appState.entities[i].currentAnimation = appState.characterAnimation.get();
             appState.entities[i].hitBox = {appState.entities[i].x,appState.entities[i].y,TILE_SIZE,TILE_SIZE};
+            appState.entities[i].inventory = &appState.inventory;
             break;
         default:
             break;
@@ -190,8 +166,8 @@ void UpdateCameraPosition(Entity& player, Camera& camera)
 
 void WorldToScreen(Camera& camera, float entityWorldX, float entityWorldY, float& drawX, float& drawY)
 {
-    drawX = entityWorldX - camera.Position.x; //+ camera.width /2.0f;
-    drawY = entityWorldY - camera.Position.y;// + camera.height /2.0f;
+    drawX = entityWorldX - camera.Position.x;
+    drawY = entityWorldY - camera.Position.y;
 }
 
 void HandlePlayerState(AppState& appState, Entity& player)
@@ -207,19 +183,18 @@ void HandlePlayerState(AppState& appState, Entity& player)
     }
     else
     {
-        InputHandler(appState,player,appState.inventory, *appState.event);
+        InputHandler(appState,player,appState.inventory);
     }
 }
 
-void InputHandler(AppState& appState, Entity& player, Inventory& inventory, SDL_Event& event)
+void InputHandler(AppState& appState, Entity& player, Inventory& inventory)
 {
-    if (event.key.repeat) return;
     if (inventory.itemInUse == nullptr) return;
-    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(*appState.map, appState.inventory, player);
+    if (inventory.itemInUse->itemType == TOOL) HandlePlayerAction(appState.inventory, player);
     else PlaceItem(*appState.map, player, inventory);
 }
 
-void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player)
+void HandlePlayerAction(Inventory& inventory, Entity& player)
 {
     if (inventory.itemInUse == nullptr) return;
     if (inventory.open) return;
@@ -237,4 +212,23 @@ void HandlePlayerAction(Map& map, Inventory& inventory, Entity& player)
     default:
         break;
     }
+}
+
+void PlaceItem (Map& map, Entity& player, Inventory& inventory)
+{
+    if (inventory.itemInUse == nullptr) return;
+    int result = -1; // Used to check the result of the placement function call and if succesfull (0) it removes the item from the inventory
+    switch (inventory.itemInUse->itemType)
+    {
+    case STRUCTURE:
+        result = PlaceStructureHandler(*inventory.itemInUse,map,player);
+        break;
+    case SEED:
+        result = PlaceSeedHandler(*inventory.itemInUse,map,player);
+        break;
+    default:
+        break;
+    }
+
+    if (result == 0) inventory.itemToRemove = inventory.itemInUse;
 }
