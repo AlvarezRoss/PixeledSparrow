@@ -38,6 +38,9 @@
 
 #define SMALL_TREE_BASE_TILE 372
 #define SMALL_TREE_STUMP_TILE 352
+#define BIG_TREE_BASE_TILE_LEFT 563
+#define BIG_TREE_BASE_TILE_RIGHT 564
+#define TREE_HEIGHT 3
 
 enum MAP_OBJECT_TYPE
 {
@@ -52,7 +55,7 @@ enum MAP_OBJECT_TYPE
 struct MapObject
 {
     MAP_OBJECT_TYPE type = OBJECT_NONE;
-    Vector2 mapIndex = {0.0f,0.0f};
+    Vector2 mapIndex[2] = {{0.0f,0.0f},{0.0f,0.0f}};
     int Hp = 0;
 };
 
@@ -81,16 +84,17 @@ void AnimateWater(AppState& appState);
 void UpdateTileIndex(AppState& appState, Entity& player);
 void SetTileId(Inventory& inventory, Map& map, Entity& player);
 void RenderItemInMap(AppState& appState, Entity& entity, Item& item);
-void PlaceStructure(Item& item, Map& map, Entity& player);
-void PlaceSeed(Item& item, Map& map, Entity& player);
-void PlaceItem (Map& map, Entity& player, Inventory& inventory);
+int PlaceStructureHandler(Item& item, Map& map, Entity& player);
+int PlaceSeedHandler(Item& item, Map& map, Entity& player);
 void ApplyTempColor(Map& map, Item& item, Entity& player);
-void HandleFencePlacement(Map& map, Item& item, int x, int y);
+int HandleFencePlacement(Map& map, Item& item, int x, int y);
 bool IsFence(Map& map, int x, int y);
 bool IsTileOccupied(Map& map, int x, int y, int layer);
 void GetPlacementTarget(Map& map, Entity& player);
-void UpdateTile(Map& map, Entity& player);
+void UpdateTile(Map& map, Entity& player,AppState& appState);
 bool IsFarmTile(Map& map, int x, int y);
 void SetMapObject(Map& map, int x, int y, int layer);
 void InitMapObjects(Map& map);
-void HandleChop(Map& map, Entity& player);
+void HandleChop(Map& map, Entity& player, AppState& appState);
+void MapObjectCleanUpHandler(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType);
+void TreeCleanup(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType);

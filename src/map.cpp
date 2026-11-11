@@ -98,10 +98,15 @@ void SetMapObject(Map& map, int x, int y, int layer)
     {
     case SMALL_TREE_BASE_TILE:
         map.mapObjects[map.objectArrayCount].type = TREE_SMALL;
-        map.mapObjects[map.objectArrayCount].mapIndex = {static_cast<float>(x),static_cast<float>(y)};
+        map.mapObjects[map.objectArrayCount].mapIndex[0] = {static_cast<float>(x),static_cast<float>(y)};
         ++map.objectArrayCount;
         break;
-    
+    case BIG_TREE_BASE_TILE_LEFT:
+        map.mapObjects[map.objectArrayCount].type = TREE_LARGE;
+        map.mapObjects[map.objectArrayCount].mapIndex[0] = {static_cast<float>(x),static_cast<float>(y)};
+        map.mapObjects[map.objectArrayCount].mapIndex[1] = {static_cast<float>(x+1),static_cast<float>(y)}; // Map index of the right base tile of the tree
+        ++map.objectArrayCount;
+        break;
     default:
         break;
     }
@@ -221,55 +226,48 @@ void RenderItemInMap(AppState& appState, Entity& entity, Item& item)
     SDL_SetTextureColorMod(item.texture,255,255,255);
 }
 
-
-void PlaceItem (Map& map, Entity& player, Inventory& inventory)
-{
-    if (inventory.itemInUse == nullptr) return;
-    switch (inventory.itemInUse->itemType)
-    {
-    case STRUCTURE:
-        PlaceStructure(*inventory.itemInUse,map,player);
-        break;
-    case SEED:
-        PlaceSeed(*inventory.itemInUse,map,player);
-        break;
-    default:
-        break;
-    }
-}
-
-void PlaceStructure(Item& item, Map& map, Entity& player)
+int PlaceStructureHandler(Item& item, Map& map, Entity& player)
 {
     GetPlacementTarget(map,player);
-    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,BUILDING_LAYER)) return;
+    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,BUILDING_LAYER)) return -1;
     map.map[BUILDING_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = item.tileSetId + TILED_OFFSET;
-    if (item.name == ITEM_FENCE) HandleFencePlacement(map,item,player.placementTarget.x,player.placementTarget.y);
     
+    switch (item.name)
+    {
+    case ITEM_FENCE:
+        return HandleFencePlacement(map,item,player.placementTarget.x,player.placementTarget.y);
+    default:
+        return -1;
+    }
+    return -1;
 }
 
-void PlaceSeed(Item& item, Map& map, Entity& player)
+int PlaceSeedHandler(Item& item, Map& map, Entity& player)
 {
     GetPlacementTarget(map,player);
-    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,DECORATION_LAYER)) return;
-    if (!IsFarmTile(map,player.placementTarget.x,player.placementTarget.y)) return;
+    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,DECORATION_LAYER)) return -1;
+    if (!IsFarmTile(map,player.placementTarget.x,player.placementTarget.y)) return -1;
     switch (item.name)
     {
     case ITEM_CARROT_SEED:
         map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = CARROT_STAGE_1 + TILED_OFFSET;
+        return 0;
         break;
-    
     default:
+        return -1;
         break;
     }
+
+    return -1;
 }
 
 void ApplyTempColor(Map& map, Item& item, Entity& player)
 {
-    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,BUILDING_LAYER)) SDL_SetTextureColorMod(item.texture,34,139,34);
+    if (IsTileOccupied(map,player.placementTarget.x,player.placementTarget.y,BUILDING_LAYER)) SDL_SetTextureColorMod(item.texture,139,139,34);
     else SDL_SetTextureColorMod(item.texture,34,139,34);
 }
-
-void HandleFencePlacement(Map& map, Item& item, int x, int y)
+// returns 0 if the placement was completed. It gets checked to call the RemoveItem from inventory function
+int HandleFencePlacement(Map& map, Item& item, int x, int y)
 {
     const int north = 2;
     const int south = 4;
@@ -283,7 +281,7 @@ void HandleFencePlacement(Map& map, Item& item, int x, int y)
     switch (tally)
     {
     case 21 : 
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_CENTRE + TILED_OFFSET) return; 
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_CENTRE + TILED_OFFSET) return 0; 
         map.map[BUILDING_LAYER][y][x] = FENCE_CENTRE + TILED_OFFSET;
         HandleFencePlacement(map,item,x+1,y);
         HandleFencePlacement(map,item,x-1,y);
@@ -291,65 +289,69 @@ void HandleFencePlacement(Map& map, Item& item, int x, int y)
         HandleFencePlacement(map,item,x,y-1);
         break;
     case 2:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_UP + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_UP + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_UP + TILED_OFFSET;
         HandleFencePlacement(map,item,x,y-1);
         break;
     case 4:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_DOWN + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_DOWN + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_DOWN + TILED_OFFSET;
         HandleFencePlacement(map,item,x,y+1);
         break;
     case 7:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_LEFT + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_LEFT + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_LEFT + TILED_OFFSET;
         HandleFencePlacement(map,item,x-1,y);
         break;
     case 8:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_RIGHT + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_RIGHT + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_RIGHT + TILED_OFFSET;
         HandleFencePlacement(map,item,x+1,y);
         break;
     case 6:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_VERTICAL_ID + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_VERTICAL_ID + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_VERTICAL_ID + TILED_OFFSET;
         HandleFencePlacement(map,item,x,y+1);
         HandleFencePlacement(map,item,x,y-1);
         break;
     case 9:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_RIGHT_DOWN_ID + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_RIGHT_DOWN_ID + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_CORNER_RIGHT_DOWN_ID + TILED_OFFSET;
         HandleFencePlacement(map,item,x,y-1);
         HandleFencePlacement(map,item,x-1,y);
         break;
     case 10:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_LEFT_DOWN_ID + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_LEFT_DOWN_ID + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_CORNER_LEFT_DOWN_ID + TILED_OFFSET;
         HandleFencePlacement(map,item,x,y-1);
         HandleFencePlacement(map,item,x+1,y);
         break;
     case 11:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_RIGHT_UP_ID + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_RIGHT_UP_ID + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_CORNER_RIGHT_UP_ID + TILED_OFFSET;
         HandleFencePlacement(map,item,x-1,y);
         HandleFencePlacement(map,item,x,y+1);
         break;
     case 12:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_LEFT_UP_ID + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_CORNER_LEFT_UP_ID + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_CORNER_LEFT_UP_ID + TILED_OFFSET;
         HandleFencePlacement(map,item,x,y+1);
         HandleFencePlacement(map,item,x+1,y);
         break;
     case 15:
-        if (map.map[BUILDING_LAYER][y][x] == FENCE_HORIZONTAL_ID + TILED_OFFSET) return;
+        if (map.map[BUILDING_LAYER][y][x] == FENCE_HORIZONTAL_ID + TILED_OFFSET) return 0;
         map.map[BUILDING_LAYER][y][x] = FENCE_HORIZONTAL_ID + TILED_OFFSET;
         HandleFencePlacement(map,item,x+1,y);
         HandleFencePlacement(map,item,x-1,y);
         break;
+    case 0:
+        return 0;
     default:
-        break;
+        return -1;
     }
-       
+
+    return -1;
+    
 }
 
 bool IsFence(Map& map, int x, int y)
@@ -427,8 +429,8 @@ void GetPlacementTarget(Map& map, Entity& player)
         break;
     }
 }
-// Function to be called form plyaer processing
-void UpdateTile(Map& map, Entity& player)
+// Function to be called form player animation end
+void UpdateTile(Map& map, Entity& player, AppState& appState)
 {
     GetPlacementTarget(map,player);
     switch (player.entityState)
@@ -442,7 +444,7 @@ void UpdateTile(Map& map, Entity& player)
         map.map[GROUND_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = FARM_SOIL_WATERED + TILED_OFFSET;
         break;
     case ENTITY_STATE_CHOPPING:
-        HandleChop(map,player);
+        HandleChop(map,player,appState);
         break;
     default:
         return;
@@ -450,14 +452,52 @@ void UpdateTile(Map& map, Entity& player)
     }
 }
 
-void HandleChop(Map& map, Entity& player)
+void HandleChop(Map& map, Entity& player, AppState& appState)
 {
-    switch (map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)])
+
+    // Checks if either the tile the plyar is in or the tile in front of the player are valid
+    int tile = map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] - TILED_OFFSET;
+    Vector2Int tilePosition = {static_cast<int>(player.placementTarget.x),static_cast<int>(player.placementTarget.y)};
+    if (tile != SMALL_TREE_BASE_TILE && tile != BIG_TREE_BASE_TILE_LEFT && tile != BIG_TREE_BASE_TILE_RIGHT)
     {
-    case SMALL_TREE_BASE_TILE + TILED_OFFSET:
-        map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = SMALL_TREE_STUMP_TILE + TILED_OFFSET;
+        tile = map.map[DECORATION_LAYER][static_cast<int>(player.tilemapIndex.y)][static_cast<int>(player.tilemapIndex.x)];
+        tilePosition = {static_cast<int>(player.tilemapIndex.x),static_cast<int>(player.tilemapIndex.y)};
+    }
+
+    if (tile != SMALL_TREE_BASE_TILE && tile != BIG_TREE_BASE_TILE_LEFT && tile != BIG_TREE_BASE_TILE_RIGHT) return;
+
+    MAP_OBJECT_TYPE objectType = OBJECT_NONE;
+    if (tile == SMALL_TREE_BASE_TILE) objectType = TREE_SMALL;
+    else objectType = TREE_LARGE;
+    AddItemToInventory(ITEM_WOOD,1,*player.inventory,appState);
+    MapObjectCleanUpHandler(map,DECORATION_LAYER,tilePosition.x,tilePosition.y,objectType);
+}
+
+
+void MapObjectCleanUpHandler(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType)
+{
+    switch (objectType)
+    {
+    case TREE_SMALL:
+    case TREE_LARGE:
+        TreeCleanup(map,DECORATION_LAYER,x,y,objectType);
         break;
     default:
         break;
     }
+}
+
+void TreeCleanup(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType)
+{
+    if (objectType != TREE_SMALL && objectType != TREE_LARGE) return;
+    
+    if (objectType == TREE_LARGE && map.map[layer][y][x] == BIG_TREE_BASE_TILE_RIGHT + TILED_OFFSET) x--;
+    
+    for (int i = 0 ; i < TREE_HEIGHT; i++)
+    {
+        map.map[layer][y-i][x] = 0;
+        if (objectType == TREE_LARGE) map.map[layer][y-i][x+1] = 0;
+    }
+    map.map[layer][y][x] = SMALL_TREE_STUMP_TILE + TILED_OFFSET;
+    return;
 }
