@@ -271,3 +271,30 @@ InventorySlot* GetInventorySlot(Inventory& inventory, Item* item)
     }
     return nullptr;
 }
+
+void RemoveItemFromInventory(Item* item, int quantity, Inventory& inventory, SDL_Renderer& renderer)
+{
+    if (item == nullptr) return;
+    int inventorySize = inventory.items.size();
+    for (int i = 0; i < inventorySize; i++)
+    {
+        if (&inventory.items[i] == item)
+        {
+            inventory.items[i].count -= quantity;
+            break;
+        }
+    }
+
+    InventorySlot* slot = GetInventorySlot(inventory,item); // function alreadty checks for nullptr
+    if (slot == nullptr) return;
+    
+    if (item->count > 0)
+    {
+        UpdateItemSlotText(renderer,inventory,*slot,*item);
+        return;
+    }
+    
+    slot->item = nullptr;
+    item = nullptr; // resets the item pointer so it can be refreshed
+
+}

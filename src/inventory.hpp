@@ -58,6 +58,7 @@ struct Inventory
     InventorySlot *srcSlot = nullptr;
     InventorySlot *destSlot = nullptr;
     int currentSlot = 0;
+    Item *itemToRemove = nullptr; // This pointer is necessary to keep track of the item that needs to be deleted as it will be handled in the app event function to prevent multiple deletes as it only runs once per event
 };
 
 // Forward declaration
@@ -76,6 +77,7 @@ void HandleInventorySelection(Inventory& inventory, InventorySlot& slot, SDL_Ren
 void RenderInventoryItems(AppState& appState, SDL_FRect& drawRectangle, Item* item, InventorySlot& itemSlot);
 void UpdateItemSelector(Inventory& inventory);
 void AddItemToInventory(ITEM item, int quantity, Inventory& inventory, AppState& appState);
+void RemoveItemFromInventory(Item *item, int quantity, Inventory& inventory, SDL_Renderer& renderer);
 void AddInitialItems(AppState& appState);
 void SetInventoryItemsNone(Inventory& inventory);
 void UpdateItemSlotText(SDL_Renderer& renderer, Inventory& inventory, InventorySlot& slot, Item& item);
