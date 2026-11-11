@@ -102,6 +102,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
         state->mouseButton = event->button.button;
         if (state->inventory.open) ProcessInventory(*state,state->inventory,*event);
+        if (state->inventory.itemToRemove != nullptr) RemoveItemFromInventory(state->inventory.itemToRemove,1,state->inventory,*state->renderer);
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
         state->mouseButton = 0;
@@ -111,6 +112,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     case SDL_EVENT_KEY_DOWN:
         if (event->button.button == SDL_SCANCODE_I) UpdateInventoryState(*state,*event);
         UpdateItemSelector(state->inventory);
+        break;
     default:
         break;
     }
