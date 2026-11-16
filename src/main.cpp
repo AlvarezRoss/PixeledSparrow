@@ -102,10 +102,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
         state->mouseButton = event->button.button;
         if (state->inventory.open) ProcessInventory(*state,state->inventory,*event);
-        if (state->inventory.itemToRemove != nullptr) RemoveItemFromInventory(state->inventory.itemToRemove,1,state->inventory,*state->renderer);
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
         state->mouseButton = 0;
+        if (state->inventory.itemToRemove != nullptr) RemoveItemFromInventory(state->inventory.itemToRemove,1,state->inventory,*state->renderer);
         break;
     case SDL_EVENT_WINDOW_RESIZED:
         break;
@@ -131,6 +131,8 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result)
     if (state->graphics->mapTexture != nullptr) SDL_DestroyTexture(state->graphics->mapTexture);
     if (state->graphics->playerTexture != nullptr) SDL_DestroyTexture(state->graphics->playerTexture);
     if (state->graphics->selectedUi != nullptr) SDL_DestroyTexture(state->graphics->selectedUi);
+    if (state->graphics->smallTreeTexture != nullptr) SDL_DestroyTexture(state->graphics->smallTreeTexture);
+    if (state->graphics->bigTreeTexture != nullptr) SDL_DestroyTexture(state->graphics->bigTreeTexture);
     if (state->renderer != nullptr) SDL_DestroyRenderer(state->renderer);
     if (state->window != nullptr) SDL_DestroyWindow(state->window);
     if (state->inventory.textFont != nullptr) TTF_CloseFont(state->inventory.textFont);
