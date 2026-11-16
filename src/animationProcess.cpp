@@ -88,3 +88,27 @@ void PlayerAnimationEnd(Entity& player, AppState& appState)
     UpdateTile(*appState.map,player,appState);
 }
 
+void InitAnimalAnimations(AnimalAnimations& animations, ENTITY_TYPE animalType, SDL_Texture& texture)
+{
+    switch (animalType)
+    {
+    case ENTITY_COW:
+        InitCowAnimations(animations,texture);
+        break;
+    
+    default:
+        break;
+    }
+}
+// Only the row and the count would be different for each animation ---- this requires rethink --- Could probably do it similarly to how the player animation processing is handled
+void InitCowAnimations(AnimalAnimations& animations, SDL_Texture& texture)
+{
+    float textureHeight = 0.0f;
+    float textureWidht = 0.0f;
+    SDL_GetTextureSize(&texture,&textureWidht,&textureHeight);
+    animations.idle.frameCount = COW_IDLE_FRAMES;
+    animations.idle.row = 1;
+    animations.idle.frameHeight = textureHeight/COW_TEXTURE_ROWS;
+    animations.idle.frameWidth = textureWidht/COW_TEXTURE_ROWS;
+
+}

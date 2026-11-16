@@ -4,6 +4,10 @@
 // Animation struct is in helper.hpp
 #define ROWS_IN_PLAYER_TEXTURE 24
 #define FRAMES_IN_PLAYER_TEXTURE 8
+#define COW_IDLE_FRAMES 3
+#define COW_WALKING_FRAMES 8
+#define COW_EATING_FRAMES 7
+#define COW_TEXTURE_ROWS 8
 #define ANIMATION_WAIT_VALUE 60
 #define CHARACTER_DIRECTIONS 4
 
@@ -16,3 +20,5 @@ void SetPlayerAnimation(Entity& player, AppState& appState);
 void PlayerAnimationEnd(Entity& player, AppState& appState);
 void SetIdleAnimation(Entity&player, AppState& appState);
 void SetWalkAnimation(Entity&player, AppState& appState);
+void InitCowAnimations(AnimalAnimations& animations, SDL_Texture& texture);
+void InitAnimalAnimations(AnimalAnimations& animations, ENTITY_TYPE animalType, SDL_Texture& texture);
