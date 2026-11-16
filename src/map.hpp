@@ -24,6 +24,7 @@
 #define WATER_LAYER 1
 #define BUILDING_LAYER 2
 #define DECORATION_LAYER 3
+#define OBJECT_LAYER 4  
 
 
 #define WATER_FIRST_FRAME 542
@@ -42,20 +43,40 @@
 #define BIG_TREE_BASE_TILE_RIGHT 564
 #define TREE_HEIGHT 3
 
+#define TREE_ANIMATION_FRAMES 4
+
+
+enum MAP_OBJECT_STATE
+{
+    MAP_OBJECT_STATE_STATIC,
+    MAP_OBJECT_STATE_WOOBLE
+};
 enum MAP_OBJECT_TYPE
 {
-    TREE_SMALL,
-    TREE_LARGE,
-    HEDGE,
-    ROCK,
-    OBJECT_TOTAL,
-    OBJECT_NONE
+    MAP_OBJECT_TREE_SMALL,
+    MAP_OBJECT_TREE_LARGE,
+    MAP_OBJECT_HEDGE,
+    MAP_OBJECT_ROCK,
+    MAP_OBJECT_TOTAL,
+    MAP_OBJECT_NONE
+};
+
+struct MapObjectAnimationData
+{
+    size_t frameSize = 0.0f;
+    int frameCount = 0;
+    int frameNumber = 0;
+    int currentFrame = 0;
+    int frameSpeed = 60;
 };
 
 struct MapObject
 {
-    MAP_OBJECT_TYPE type = OBJECT_NONE;
-    Vector2 mapIndex[2] = {{0.0f,0.0f},{0.0f,0.0f}};
+    MAP_OBJECT_TYPE type = MAP_OBJECT_NONE;
+    Vector2 mapIndex = {0.0f,0.0f};
+    SDL_Texture* texture = nullptr;
+    MapObjectAnimationData animationData;
+    MAP_OBJECT_STATE state = MAP_OBJECT_STATE_STATIC;
     int Hp = 0;
 };
 
@@ -93,8 +114,11 @@ bool IsTileOccupied(Map& map, int x, int y, int layer);
 void GetPlacementTarget(Map& map, Entity& player);
 void UpdateTile(Map& map, Entity& player,AppState& appState);
 bool IsFarmTile(Map& map, int x, int y);
-void SetMapObject(Map& map, int x, int y, int layer);
-void InitMapObjects(Map& map);
+void SetMapObject(Map& map, int x, int y, int layer, Graphics& graphics);
+void InitMapObjects(Map& map, Graphics& graphics);
 void HandleChop(Map& map, Entity& player, AppState& appState);
 void MapObjectCleanUpHandler(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType);
 void TreeCleanup(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType);
+void DrawMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera);
+void AnimateMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera);
+void DrawMapObjectsHandler(Map& map, SDL_Renderer& renderer, Camera& camera);
