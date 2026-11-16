@@ -115,6 +115,8 @@ struct Graphics
     SDL_Texture *inventorySlot;
     SDL_Texture *mapTexture;
     SDL_Texture *cursorTexture;
+    SDL_Texture *smallTreeTexture;
+    SDL_Texture *bigTreeTexture;
 };
 struct Animation
 {
@@ -146,7 +148,8 @@ struct Cursor
 };
 struct Entity
 {
-    Animation* currentAnimation;
+    Animation* currentAnimation = nullptr;
+    AnimalAnimations animalAnimations; // only used for animals
     CHARACTER_ANIMATION_ROW characterAnimationRow; //Only used for humanoids
     ENTITY_TYPE entityType;
     ENTITY_STATE entityState;

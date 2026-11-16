@@ -20,8 +20,11 @@ int InitGraphics(AppState& appState)
     appState.graphics->inventorySlot = IMG_LoadTexture(appState.renderer,"assets/inventory_example_with_slots.png");
     if (appState.graphics->inventorySlot == nullptr) return -1;
     appState.graphics->mapTexture = IMG_LoadTexture(appState.renderer,"assets/spr_tileset_sunnysideworld_16px.png");
-    if (appState.graphics->inventorySlot == nullptr) return -1; 
-
+    if (appState.graphics->inventorySlot == nullptr) return -1;
+    appState.graphics->smallTreeTexture = IMG_LoadTexture(appState.renderer,"assets/spr_deco_tree_02_strip4.png"); 
+    if (appState.graphics->smallTreeTexture == nullptr) return -1;
+    appState.graphics->bigTreeTexture = IMG_LoadTexture(appState.renderer, "assets/spr_deco_tree_01_strip4.png");
+    if (appState.graphics->bigTreeTexture == nullptr) return -1;
     appState.cursor.texture = appState.graphics->mapTexture; // Cursor is in map texture - Shared resource // Could use shared ptr rather than raw pointers
     return 0;
 }
@@ -29,7 +32,8 @@ int InitGraphics(AppState& appState)
 void SetEntities(AppState& appState)
 {
     appState.entities[0].entityType = ENTITY_PLAYER;
-    for (int i = 1; i < MAX_ENTITIES; i++)
+    appState.entities[1].entityType = ENTITY_COW;
+    for (int i = 2; i < MAX_ENTITIES; i++)
     {
         appState.entities[i].entityType = ENTITY_NONE;
         appState.entities[i].entityState = ENTITY_STATE_UNINITIALIZED;
@@ -50,6 +54,10 @@ void InitEntities(AppState& appState)
             appState.entities[i].currentAnimation = appState.characterAnimation.get();
             appState.entities[i].hitBox = {appState.entities[i].x,appState.entities[i].y,TILE_SIZE,TILE_SIZE};
             appState.entities[i].inventory = &appState.inventory;
+            break;
+        case ENTITY_COW:
+            appState.entities[i].entityState = ENTITY_STATE_IDLE;
+            appState.entities[i].entityTexture = appState.graphics->cowTexture;
             break;
         default:
             break;
