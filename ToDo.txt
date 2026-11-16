@@ -8,6 +8,7 @@
 - Implement farming - 50%
 - Change Cursor - Done.
 - Harvest Resources.
+- Make animated trees.
 - Handle collisions.
 - Update tiles based on player action.
 - Implement animals.
