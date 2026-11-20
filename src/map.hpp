@@ -41,7 +41,7 @@
 #define SMALL_TREE_STUMP_TILE 352
 #define BIG_TREE_BASE_TILE_LEFT 563
 #define BIG_TREE_BASE_TILE_RIGHT 564
-#define TREE_HEIGHT 3
+#define TREE_HEIGHT 2
 
 #define TREE_ANIMATION_FRAMES 4
 
@@ -49,7 +49,10 @@
 enum MAP_OBJECT_STATE
 {
     MAP_OBJECT_STATE_STATIC,
-    MAP_OBJECT_STATE_WOOBLE
+    MAP_OBJECT_STATE_WOOBLE,
+    MAP_OBJECT_STATE_DESTROYED,
+    MAP_OBJECT_STATE_TOTAL,
+    MAP_OBJECT_STATE_NONE
 };
 enum MAP_OBJECT_TYPE
 {
@@ -63,17 +66,18 @@ enum MAP_OBJECT_TYPE
 
 struct MapObjectAnimationData
 {
-    size_t frameSize = 0.0f;
+    size_t frameWidth = 0.0f;
     int frameCount = 0;
     int frameNumber = 0;
     int currentFrame = 0;
-    int frameSpeed = 60;
+    int frameSpeed = 6;
 };
 
 struct MapObject
 {
     MAP_OBJECT_TYPE type = MAP_OBJECT_NONE;
-    Vector2 mapIndex = {0.0f,0.0f};
+    Vector2 originIndex = {0.0f,0.0f}; // Index in the ObjectLayer -- Set the map layer to 0 after loading
+    Vector2 mapIndex = {0.0f,0.0f}; // Index of the base tile
     SDL_Texture* texture = nullptr;
     MapObjectAnimationData animationData;
     MAP_OBJECT_STATE state = MAP_OBJECT_STATE_STATIC;
@@ -122,3 +126,4 @@ void TreeCleanup(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType);
 void DrawMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera);
 void AnimateMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera);
 void DrawMapObjectsHandler(Map& map, SDL_Renderer& renderer, Camera& camera);
+MapObject* GetMapObject(Map& map, int x, int y);

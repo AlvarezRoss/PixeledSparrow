@@ -101,18 +101,22 @@ void SetMapObject(Map& map, int x, int y, int layer, Graphics& graphics)
     {
     case SMALL_TREE_BASE_TILE + TILED_OFFSET:
         map.mapObjects[map.objectArrayCount].type = MAP_OBJECT_TREE_SMALL;
-        map.mapObjects[map.objectArrayCount].mapIndex = {static_cast<float>(x),static_cast<float>(y)};
+        map.mapObjects[map.objectArrayCount].originIndex = {static_cast<float>(x),static_cast<float>(y)};
+        map.mapObjects[map.objectArrayCount].mapIndex = {static_cast<float>(x),static_cast<float>(y + TREE_HEIGHT)};
         map.mapObjects[map.objectArrayCount].texture = graphics.smallTreeTexture;
-        map.mapObjects[map.objectArrayCount].animationData.frameNumber = 4;
-        map.mapObjects[map.objectArrayCount].animationData.frameSize = map.mapObjects[map.objectArrayCount].texture->w/map.mapObjects[map.objectArrayCount].animationData.frameNumber;
+        map.mapObjects[map.objectArrayCount].animationData.frameNumber = TREE_ANIMATION_FRAMES;
+        map.mapObjects[map.objectArrayCount].animationData.frameWidth = map.mapObjects[map.objectArrayCount].texture->w/map.mapObjects[map.objectArrayCount].animationData.frameNumber;
+        map.mapObjects[map.objectArrayCount].Hp = 5;
         ++map.objectArrayCount;
         break;
     case BIG_TREE_BASE_TILE_LEFT + TILED_OFFSET:
         map.mapObjects[map.objectArrayCount].type = MAP_OBJECT_TREE_LARGE;
-        map.mapObjects[map.objectArrayCount].mapIndex = {static_cast<float>(x),static_cast<float>(y)};
+        map.mapObjects[map.objectArrayCount].originIndex = {static_cast<float>(x),static_cast<float>(y)};
+        map.mapObjects[map.objectArrayCount].mapIndex = {static_cast<float>(x),static_cast<float>(y + TREE_HEIGHT)};
         map.mapObjects[map.objectArrayCount].texture = graphics.bigTreeTexture;
-        map.mapObjects[map.objectArrayCount].animationData.frameNumber = 4;
-        map.mapObjects[map.objectArrayCount].animationData.frameSize = map.mapObjects[map.objectArrayCount].texture->w/map.mapObjects[map.objectArrayCount].animationData.frameNumber;
+        map.mapObjects[map.objectArrayCount].animationData.frameNumber = TREE_ANIMATION_FRAMES;
+        map.mapObjects[map.objectArrayCount].animationData.frameWidth = map.mapObjects[map.objectArrayCount].texture->w/map.mapObjects[map.objectArrayCount].animationData.frameNumber;
+        map.mapObjects[map.objectArrayCount].Hp = 5;
         ++map.objectArrayCount;
         break;
     default:
@@ -120,7 +124,7 @@ void SetMapObject(Map& map, int x, int y, int layer, Graphics& graphics)
         ++map.objectArrayCount;
         break;
     }
-    
+    map.map[layer][y][x] = 0; // Sets the layer to 0 to prevent double finds in the iteraction with the map
 }
 // Draw Objects will have their own drawing functions and they will be mostly animated
 void DrawMap(AppState& appState)
@@ -176,6 +180,9 @@ void DrawMapObjectsHandler(Map& map, SDL_Renderer& renderer, Camera& camera)
             break;
         case MAP_OBJECT_STATE_WOOBLE:
             AnimateMapObject(renderer,map.mapObjects[i],camera);
+            break;
+        case MAP_OBJECT_STATE_DESTROYED:
+            continue;
         default:
             break;
         }
@@ -184,13 +191,13 @@ void DrawMapObjectsHandler(Map& map, SDL_Renderer& renderer, Camera& camera)
 
 void DrawMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera)
 {
-    const SDL_FRect src = {0.0f,0.0f,object.animationData.frameSize,object.texture->h};
-    float worldX = static_cast<float>(object.mapIndex.x * TILE_SIZE);
-    float worldY = static_cast<float>(object.mapIndex.y * TILE_SIZE);
+    const SDL_FRect src = {0.0f,0.0f,object.animationData.frameWidth,object.texture->h};
+    float worldX = static_cast<float>(object.originIndex.x * TILE_SIZE);
+    float worldY = static_cast<float>(object.originIndex.y * TILE_SIZE);
     float drawX;
     float drawY;
     WorldToScreen(camera,worldX,worldY,drawX,drawY);
-    const SDL_FRect dest = {drawX,drawY,object.animationData.frameSize,object.texture->h};
+    const SDL_FRect dest = {drawX,drawY,object.animationData.frameWidth,object.texture->h};
 
     if (!SDL_RenderTexture(&renderer,object.texture,&src,&dest))
     {
@@ -201,6 +208,37 @@ void DrawMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera)
 
 void AnimateMapObject(SDL_Renderer& renderer, MapObject& object, Camera& camera)
 {
+    const int waitTime = 30;
+    object.animationData.frameCount ++;
+    if (object.animationData.frameCount >= waitTime/object.animationData.frameSpeed)
+    {
+        object.animationData.currentFrame ++;
+        object.animationData.frameCount = 0;
+        if (object.animationData.currentFrame >= object.animationData.frameNumber)
+        {
+            object.animationData.currentFrame = 0;
+            object.Hp--;
+            object.state = MAP_OBJECT_STATE_STATIC;
+        }
+    }
+    float worldX = static_cast<float>(object.originIndex.x * TILE_SIZE);
+    float worldY = static_cast<float>(object.originIndex.y * TILE_SIZE);
+    float drawX;
+    float drawY;
+    const SDL_FRect src = {static_cast<float>(object.animationData.frameWidth*object.animationData.currentFrame),
+                            0.0f,
+                            static_cast<float>(object.animationData.frameWidth),
+                            static_cast<float>(object.texture->h)};
+
+
+    WorldToScreen(camera,worldX,worldY,drawX,drawY);
+    const SDL_FRect dest = {drawX,
+                            drawY,
+                            static_cast<float>(object.animationData.frameWidth), 
+                            static_cast<float>(object.texture->h)};
+
+    SDL_RenderTexture(&renderer,object.texture,&src,&dest);
+
     return;
 }
 
@@ -292,7 +330,6 @@ int PlaceStructureHandler(Item& item, Map& map, Entity& player)
     default:
         return -1;
     }
-    return -1;
 }
 
 int PlaceSeedHandler(Item& item, Map& map, Entity& player)
@@ -305,13 +342,9 @@ int PlaceSeedHandler(Item& item, Map& map, Entity& player)
     case ITEM_CARROT_SEED:
         map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] = CARROT_STAGE_1 + TILED_OFFSET;
         return 0;
-        break;
     default:
         return -1;
-        break;
     }
-
-    return -1;
 }
 
 void ApplyTempColor(Map& map, Item& item, Entity& player)
@@ -509,21 +542,27 @@ void HandleChop(Map& map, Entity& player, AppState& appState)
 {
 
     // Checks if either the tile the plyar is in or the tile in front of the player are valid
-    int tile = map.map[DECORATION_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] - TILED_OFFSET;
+    int tile = map.map[OBJECT_LAYER][static_cast<int>(player.placementTarget.y)][static_cast<int>(player.placementTarget.x)] - TILED_OFFSET;
     Vector2Int tilePosition = {static_cast<int>(player.placementTarget.x),static_cast<int>(player.placementTarget.y)};
-    if (tile != SMALL_TREE_BASE_TILE && tile != BIG_TREE_BASE_TILE_LEFT && tile != BIG_TREE_BASE_TILE_RIGHT)
+    if (tile == 0)
     {
-        tile = map.map[DECORATION_LAYER][static_cast<int>(player.tilemapIndex.y)][static_cast<int>(player.tilemapIndex.x)];
+        tile = map.map[OBJECT_LAYER][static_cast<int>(player.tilemapIndex.y)][static_cast<int>(player.tilemapIndex.x)];
         tilePosition = {static_cast<int>(player.tilemapIndex.x),static_cast<int>(player.tilemapIndex.y)};
     }
 
-    if (tile != SMALL_TREE_BASE_TILE && tile != BIG_TREE_BASE_TILE_LEFT && tile != BIG_TREE_BASE_TILE_RIGHT) return;
-
-    MAP_OBJECT_TYPE objectType = MAP_OBJECT_NONE;
-    if (tile == SMALL_TREE_BASE_TILE) objectType = MAP_OBJECT_TREE_SMALL;
-    else objectType = MAP_OBJECT_TREE_LARGE;
-    AddItemToInventory(ITEM_WOOD,1,*player.inventory,appState);
-    MapObjectCleanUpHandler(map,DECORATION_LAYER,tilePosition.x,tilePosition.y,objectType);
+    if (tile == 0) return;
+    MapObject* target = GetMapObject(map,tilePosition.x,tilePosition.y);
+    if (target == nullptr) return;
+    if (target->state == MAP_OBJECT_STATE_DESTROYED) return;
+    if (target->Hp <= 0) 
+    {
+        target->state = MAP_OBJECT_STATE_DESTROYED;
+        AddItemToInventory(ITEM_WOOD,1,*player.inventory,appState);
+        MapObjectCleanUpHandler(map,DECORATION_LAYER,target->mapIndex.x,target->mapIndex.y,target->type);
+        return;
+    }
+    target->state = MAP_OBJECT_STATE_WOOBLE; 
+    
 }
 
 
@@ -533,7 +572,8 @@ void MapObjectCleanUpHandler(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE 
     {
     case MAP_OBJECT_TREE_SMALL:
     case MAP_OBJECT_TREE_LARGE:
-        TreeCleanup(map,DECORATION_LAYER,x,y,objectType);
+        //TreeCleanup(map,DECORATION_LAYER,x,y,objectType);
+        map.map[layer][y][x] = SMALL_TREE_STUMP_TILE + TILED_OFFSET;
         break;
     default:
         break;
@@ -553,4 +593,14 @@ void TreeCleanup(Map& map, int layer, int x, int y, MAP_OBJECT_TYPE objectType)
     }
     map.map[layer][y][x] = SMALL_TREE_STUMP_TILE + TILED_OFFSET;
     return;
+}
+
+MapObject* GetMapObject(Map& map, int x, int y)
+{
+    for (int i = 0 ; i < map.objectArrayCount; i++)
+    {
+        if (map.mapObjects[i].mapIndex.x == x && map.mapObjects[i].mapIndex.y == y) return &map.mapObjects[i];
+    }
+
+    return nullptr;
 }
