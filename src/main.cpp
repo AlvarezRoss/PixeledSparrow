@@ -23,7 +23,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int arc, char **argv)
         SDL_Log("Could not init TTF: %s",SDL_GetError());
         return SDL_APP_FAILURE;
     }
-    if (!SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE,"60"))
+    if (!SDL_SetHintWithPriority(SDL_HINT_MAIN_CALLBACK_RATE,"60",SDL_HINT_OVERRIDE))
     {
         SDL_Log("Could not set framerate: %s",SDL_GetError());
     }
