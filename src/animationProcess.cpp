@@ -28,7 +28,7 @@ void InitPlayerAnimations(std::unique_ptr<Animation>& animation,SDL_Texture& tex
     animation->currentFrame = 0;
     animation->frameHeight = textureHegiht/ROWS_IN_PLAYER_TEXTURE;
     animation->frameWidth = textureWidth/FRAMES_IN_PLAYER_TEXTURE;
-    animation->frameSpeed = 10;
+    animation->frameSpeed = 6;
     animation->frameRect = {
                         0,
                         animation->frameHeight*animation->row,
